@@ -112,10 +112,7 @@
 
                 // Update the emoji based on the detected class and probability
                 if (maxScore > probabilityThreshold) {
-                    switch (detectedClass) {
-                        case "grin":
-                            labelContainer.innerHTML = "🥦"; // Flame emoji for cakmak
-                            break;
+                    switch (detectedClass) {                    
                         case "cakmak":
                             labelContainer.innerHTML = "🔥"; // Flame emoji for cakmak
                             break;
