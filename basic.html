@@ -112,6 +112,7 @@
 <body>
 
 <div class="container">
+    <div id="loading-message">Model Yükleniyor...</div>
     <button type="button" onclick="init()" disabled id="start-button">les go</button>
 
     <div id="label-container"></div>
@@ -183,7 +184,7 @@
              if (labelContainer.innerHTML === '') { // Sadece ilk kez veya temizlendiyse oluştur
                  for (let i = 0; i < classLabels.length; i++) {
                      const labelDiv = document.createElement("div");
-                     labelDiv.innerHTML = `<span>${classLabels[i]}</span><span>-- %</span>`;
+                     labelDiv.innerHTML = `<span>${classLabels[i]}</span><span></span>`;
                      labelContainer.appendChild(labelDiv);
                  }
              }
@@ -201,7 +202,7 @@
                  for (let i = 0; i < classLabels.length; i++) {
                      // Olasılığı 100 ile çarpıp tam sayıya yuvarla
                      const percentage = Math.round(result.scores[i] * 100);
-                     const classPrediction = `<span>${classLabels[i]}</span><span>${percentage} %</span>`;
+                     const classPrediction = `<span>${classLabels[i]}</span><span>${percentage}</span>`;
                      const labelDiv = labelContainer.childNodes[i];
                      labelDiv.innerHTML = classPrediction;
 
@@ -252,7 +253,7 @@
              const labelDivs = labelContainer.childNodes;
              if (classLabels) { // classLabels yüklüyse etiketleri eski haline getir
                  for (let i = 0; i < labelDivs.length; i++) {
-                     labelDivs[i].innerHTML = `<span>${classLabels[i]}</span><span>-- %</span>`;
+                     labelDivs[i].innerHTML = `<span>${classLabels[i]}</span><span></span>`;
                      labelDivs[i].classList.remove('highest-confidence'); // Vurguyu kaldır
                  }
              } else { // classLabels yüklü değilse tamamen temizle
