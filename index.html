@@ -63,7 +63,7 @@
 
   #label-container div {
     margin-bottom: 12px; /* Boşluk artırıldı */
-    padding: 18px; /* Padding artırıldı */
+    padding: 12px; /* Padding artırıldı */
     background-color: #3a3a3a; /* Etiket arka planı */
     border-radius: 5px;
     font-size: 1.1rem;
@@ -287,7 +287,7 @@
                       const percentage = Math.round(score * 100);
 
                       // Etiket içeriğini güncelle
-                      item.div.innerHTML = `<span>${item.name}</span><span>${percentage}%</span>`; // % işareti eklendi
+                      item.div.innerHTML = `<span>${item.name}</span><span>${percentage}</span>`; // % işareti eklendi
 
                       // Vurgu eşiğini kontrol et (%95 üzeri)
                       if (percentage >= HIGHLIGHT_THRESHOLD) {
