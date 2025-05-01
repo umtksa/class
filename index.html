@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>duf</title>
-<meta charset="UTF-8">
+<title>Speech Recognition</title> <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,27 +18,35 @@
     background-color: #1e1e1e; /* Koyu arka plan */
     color: #f0f0f0; /* Açık metin rengi */
     font-weight: 400; /* Varsayılan font ağırlığı (bold olmaması için) */
+    line-height: 1.6; /* Satır aralığı eklendi */
   }
 
   .container {
       background-color: #2d2d2d; /* Konteyner için biraz daha açık koyu renk */
-      padding: 25px; /* Padding artırıldı */
-      border-radius: 8px; /* Kenar yumuşatma */
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Koyu gölge */
+      padding: 30px; /* Padding artırıldı */
+      border-radius: 10px; /* Kenar yumuşatma */
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); /* Koyu gölge artırıldı */
       text-align: center; /* İçeriği (varsayılan olarak inline/inline-block) ortalar */
-      width: 90%;
-      max-width: 500px;
+      width: 95%; /* Genişlik artırıldı */
+      max-width: 600px; /* Maksimum genişlik */
+      box-sizing: border-box; /* Paddingin genişliği etkilememesi için */
+  }
+
+  h1 {
+      font-size: 2em; /* Başlık boyutu */
+      margin-bottom: 20px; /* Başlık alt boşluğu */
+      color: #f0f0f0; /* Başlık rengi */
   }
 
   button {
-    padding: 12px 24px; /* Buton boyutu artırıldı */
-    font-size: 1.1rem; /* Buton font boyutu */
+    padding: 15px 30px; /* Buton boyutu artırıldı */
+    font-size: 1.2rem; /* Buton font boyutu */
     cursor: pointer;
     border: none;
-    border-radius: 4px; /* Burada '4psx' yerine '4px' olmalı */
+    border-radius: 5px; /* Kenar yumuşatma */
     background-color: #007bff;
     color: white;
-    margin-bottom: 20px; /* Buton altında boşluk */
+    margin-bottom: 25px; /* Buton altında boşluk */
     transition: background-color 0.3s ease;
     display: inline-block; /* BUTON HEP INLINE-BLOCK KALACAK ve text-align: center ile ortalanacak */
     font-family: sans-serif; /* Buton fontu sistem fontu kalsın, daha okunur olabilir */
@@ -63,10 +70,10 @@
   }
 
   #label-container div {
-    margin-bottom: 10px; /* Boşluk artırıldı */
-    padding: 15px; /* Padding artırıldı */
+    margin-bottom: 12px; /* Boşluk artırıldı */
+    padding: 18px; /* Padding artırıldı */
     background-color: #3a3a3a; /* Etiket arka planı */
-    border-radius: 4px;
+    border-radius: 5px;
     font-size: 1.1rem;
     color: #f0f0f0; /* Etiket metin rengi */
     display: flex;
@@ -78,14 +85,16 @@
 
    #label-container div span:first-child {
        font-weight: normal; /* Etiketin bold olmamasını sağla */
-       margin-right: 15px; /* Boşluk artırıldı */
+       margin-right: 20px; /* Boşluk artırıldı */
+       flex-grow: 1; /* Etiket adının alanı kaplamasını sağla */
    }
 
    #label-container div span:last-child {
        font-family: monospace; /* Yüzde için sabit genişlikli font */
-       min-width: 40px; /* Yüzde alanı için minimum genişlik */
+       min-width: 50px; /* Yüzde alanı için minimum genişlik artırıldı */
        text-align: right;
        font-weight: normal; /* Yüzdenin bold olmamasını sağla */
+       flex-shrink: 0; /* Yüzdenin küçülmemesini sağla */
    }
 
 
@@ -99,9 +108,6 @@
     #label-container div.highest-confidence span {
        font-weight: normal !important; /* !important ekledim ki diğer span kurallarını ezsin */
     }
-     /* Alternatif olarak tek tek de yapabilirsin: */
-     /* #label-container div.highest-confidence span:first-child { font-weight: normal; } */
-     /* #label-container div.highest-confidence span:last-child { font-weight: normal; } */
 
 
    #loading-message {
@@ -135,10 +141,8 @@
 <body>
 
 <div class="container">
-    <div id="loading-message"></div>
-    <button type="button" onclick="init()" disabled id="start-button" class="hidden-button">les go</button>
-
-    <div id="label-container"></div>
+    <h1>Konuşma Tanıma</h1> <div id="loading-message"></div>
+    <button type="button" onclick="init()" disabled id="start-button" class="hidden-button">Başla</button> <div id="label-container"></div>
 </div>
 
 
@@ -154,7 +158,7 @@
     const metadataURL = "https://raw.githubusercontent.com/umtksa/class/refs/heads/main/metadata.json"; // model metadata
 
     const NOTHING_LABEL = "nothing"; // 'nothing' etiketini belirledik
-    const HIGHLIGHT_THRESHOLD = 95; // Vurgu için yüzde eşiği
+    const HIGHLIGHT_THRESHOLD = 95; // Vurgu için yüzde eşiği (95% ve üzeri)
 
     let recognizer;
     let classLabels; // Modeldeki tüm etiketler (nothing dahil)
@@ -218,27 +222,14 @@
         modelLoaded = true; // Model başarılı yüklendi olarak işaretle
         console.log("Model and metadata ensured loaded successfully.");
 
-        // *** ÖNEMLİ: Model ve metadata yüklendikten sonra etiketleri yeniden al ***
-        classLabels = recognizer.wordLabels(); // Modeldeki tüm etiketleri al
+        // *** ÖNEMLİ: Model ve metadata yüklendikten sonra etiketleri al ***
+        // BU KISIM ARTIK SADECE ETIKETLERI ALACAK. DIV'LERIN OLUŞTURULMASI INIT()'E TAŞINDI.
+        classLabels = recognizer.wordLabels();
         console.log("All class labels from model:", classLabels);
 
-        // *** Gösterilecek etiketleri (nothing hariç) belirle ve divlerini oluştur ***
-        visibleLabels = []; // Listeyi temizle
-        labelContainer.innerHTML = ''; // Önceki divleri temizle (init() içinde de yapılıyor ama burada da olsun)
 
-        for (let i = 0; i < classLabels.length; i++) {
-            const label = classLabels[i];
-            if (label !== NOTHING_LABEL) { // Eğer etiket 'nothing' değilse
-                const labelDiv = document.createElement("div");
-                // Başlangıç metni: Etiket ve boş yüzde alanı
-                labelDiv.innerHTML = `<span>${label}</span><span></span>`;
-                labelContainer.appendChild(labelDiv);
-                // Gösterilecek etiketler listesine ekle (orijinal indeksi ve div elementi ile birlikte)
-                visibleLabels.push({ name: label, originalIndex: i, div: labelDiv });
-            }
-        }
-         console.log("Visible labels:", visibleLabels.map(l => l.name));
-        // ************************************************************************
+        // !!! BURADAN DIV OLUŞTURMA VE VISIBLELABELS POPÜLASYONU KALDIRILDI !!!
+        // BU İŞLEM ARTIK init() İÇİNDE YAPILACAK.
 
 
         return recognizer;
@@ -253,14 +244,31 @@
         updateLoadingMessage("Mikrofon izni bekleniyor..."); // Mesajı göster
         // Butonu gizlemek için sınıf kullan
         startButton.classList.add('hidden-button');
-         // Etiket alanını temizle ve visibleLabels'ı createModel içinde yeniden oluştur
-        labelContainer.innerHTML = ''; // Temizle
-        visibleLabels = []; // Listeyi temizle
 
+        // *** ÖNCEKİ ETİKETLERİ TEMİZLE VE LİSTEYİ BOŞALT ***
+        labelContainer.innerHTML = ''; // Etiket alanını temizle
+        visibleLabels = []; // Gösterilecek etiketler listesini boşalt
+        // ***************************************************
 
         try {
              // createModel artık içinde yüklü olup olmadığını kontrol ediyor
-             await createModel(); // Model yüklenir veya önceden yüklüyse döner. classLabels ve visibleLabels burada güncellenir.
+             await createModel(); // Model yüklenir veya önceden yüklüyse döner. classLabels burada zaten alınmış olur.
+
+             // *** MODEL YÜKLENDİKTEN SONRA GÖSTERİLECEK ETİKETLERİ (NOTHING HARİÇ) BELİRLE VE DIVLERİNİ OLUŞTUR ***
+             // Bu kısım artık init() içinde çalışacak
+             for (let i = 0; i < classLabels.length; i++) {
+                const label = classLabels[i];
+                if (label !== NOTHING_LABEL) { // Eğer etiket 'nothing' değilse
+                    const labelDiv = document.createElement("div");
+                    // Başlangıç metni: Etiket ve boş yüzde alanı
+                    labelDiv.innerHTML = `<span>${label}</span><span></span>`;
+                    labelContainer.appendChild(labelDiv);
+                    // Gösterilecek etiketler listesine ekle (orijinal indeksi ve div elementi ile birlikte)
+                    visibleLabels.push({ name: label, originalIndex: i, div: labelDiv });
+                }
+             }
+             console.log("Visible labels created:", visibleLabels.map(l => l.name));
+             // ************************************************************************************************
 
              // Model başarılı yüklendiğinde veya yüklüyse mesajı temizle
              updateLoadingMessage(""); // Başarılı olursa mesajı boşalt ve gizle
@@ -279,12 +287,15 @@
                  });
 
                  // Her görünür etiket için olasılığı güncelle ve vurguyu kontrol et
+                 // NOT: Bu kod, %95 üzeri olan TÜM etiketleri vurgular.
+                 // SADECE EN YÜKSEK OLANI vurgulamak isterseniz burayı değiştirmeniz gerekir.
+                 // Şu anki hali, 95% eşiğini geçen herhangi bir kelimeyi vurgular.
                  visibleLabels.forEach(item => {
                       const score = scores[item.originalIndex]; // Orijinal indeksi kullanarak skoru al
                       const percentage = Math.round(score * 100);
 
                       // Etiket içeriğini güncelle
-                      item.div.innerHTML = `<span>${item.name}</span><span>${percentage}</span>`;
+                      item.div.innerHTML = `<span>${item.name}</span><span>${percentage}%</span>`; // % işareti eklendi
 
                       // Vurgu eşiğini kontrol et (%95 üzeri)
                       if (percentage >= HIGHLIGHT_THRESHOLD) {
@@ -295,9 +306,13 @@
 
              }, {
                  includeSpectrogram: true, // in case listen should return result.spectrogram
-                 probabilityThreshold: 0.75, // Bu eşik modelin ne zaman bir "kelime" algıladığını belirler. 'invokeCallbackOnNoiseAndUnknown' true olduğu için noise ve unknown için de callback çalışır.
-                 invokeCallbackOnNoiseAndUnknown: true,
+                 // probabilityThreshold: 0.75, // Bu eşik modelin ne zaman bir "kelime" algıladığını belirler.
+                 // invokeCallbackOnNoiseAndUnknown: true, // Noise veya unknown algılandığında callback'i çalıştırmak için (Şu anki callback'te kullanmıyoruz)
+                 // Overlap factor kelimeler arası geçişi ne kadar dikkate alacağını belirler
                  overlapFactor: 0.50 // probably want between 0.5 and 0.75. More info in README
+                 // NOT: Eğer sadece belirlediğiniz kelimeleri algılamak istiyorsanız
+                 // invokeCallbackOnNoiseAndUnknown: false yapıp probabilityThreshold'u ayarlayabilirsiniz.
+                 // Şu anki ayar, her saniye bir sonuç verir.
              });
 
              isListening = true; // Dinleme başladı olarak işaretle
@@ -305,11 +320,16 @@
 
 
          } catch (error) {
-             console.error("Model başlatılırken bir hata oluştu:", error);
-             updateLoadingMessage("Hata: Model başlatılamadı.", true); // Hata mesajını göster
+             console.error("Model veya mikrofon başlatılırken bir hata oluştu:", error);
+             updateLoadingMessage("Hata: Mikrofon başlatılamadı veya model yüklenemedi. Lütfen mikrofon iznini kontrol edin.", true); // Hata mesajı güncellendi
              // Hata durumunda butonu göstermek için sınıf kullan
              startButton.classList.remove('hidden-button');
+             startButton.disabled = true; // Hata durumunda butonu devre dışı bırak
              isListening = false; // Dinleme durumu hatalı olarak işaretle
+
+              // Hata olursa etiket alanını temizle
+              labelContainer.innerHTML = '';
+              visibleLabels = [];
          }
     }
 
@@ -321,7 +341,8 @@
             console.log("Dinleme durduruldu.");
             // Durdurunca butonu göstermek için sınıf kullan
             startButton.classList.remove('hidden-button');
-            updateLoadingMessage(""); // Durdurulduğunda mesajı temizle ve gizle
+            startButton.disabled = false; // Durdurunca butonu tekrar aktif et
+            updateLoadingMessage("Dinleme durduruldu."); // Durdurulduğunda mesaj göster
 
              // Etiketleri eski haline getirebilir (boş yüzde) ve vurguyu kaldırabilirsin
              visibleLabels.forEach(item => {
@@ -339,28 +360,30 @@
     // Sayfa yüklendiğinde modeli önceden yüklemeye başla
     async function preloadModel() {
         try {
-            // updateLoadingMessage("Model Yükleniyor..."); // Başlangıç yükleme mesajı (Artık HTML'de var, JS ile yönetilecek)
-            // HTML'deki başlangıç mesajını göster (JS başlayana kadar)
-            loadingMessage.innerText = "Model Yükleniyor...";
-            loadingMessage.classList.remove('hidden-message'); // Mesajı görünür yap
-            startButton.disabled = true; // Butonu başlangıçta devre dışı bırak
+            // Başlangıç yükleme mesajını göster ve butonu devre dışı bırak
+            updateLoadingMessage("Model Yükleniyor...");
+            startButton.disabled = true;
+            // Butonun gizli olmadığından emin ol (ilk yüklemede görünecek)
+            startButton.classList.remove('hidden-button');
 
 
             await createModel(); // Modeli yükle (Cache busting burada devreye girer)
-            // createModel artık visibleLabels listesini ve divlerini de oluşturuyor
+            // createModel artık sadece modeli yüklüyor ve classLabels'ı alıyor.
+            // Etiket divleri burada OLUŞTURULMUYOR.
 
             // Model başarılı yüklendiğinde mesajı temizle
             updateLoadingMessage(""); // Mesajı boşalt ve gizle
 
             startButton.disabled = false; // Butonu aktif et
-            // Butonun görünür olduğundan emin ol (gizli sınıfı kaldır)
-            startButton.classList.remove('hidden-button');
-            console.log("Model ön yüklendi.");
+            startButton.innerText = "Başla"; // Buton metnini "Başla" yap
+            console.log("Model ön yüklendi. Başlamak için 'Başla' butonuna basın.");
 
         } catch (error) {
             console.error("Model ön yüklenirken bir hata oluştu:", error);
             updateLoadingMessage("Hata: Model ön yüklenemedi.", true); // Hata mesajını göster
             startButton.disabled = true; // Hata olursa butonu disabled tut
+            startButton.classList.remove('hidden-button'); // Hata olsa bile buton görünür kalsın
+             startButton.innerText = "Hata"; // Buton metnini "Hata" yapabiliriz
         }
     }
 
