@@ -31,7 +31,7 @@
     font-size: 1.1rem; /* Buton font boyutu */
     cursor: pointer;
     border: none;
-    border-radius: 4px;
+    border-radius: 4psx;
     background-color: #007bff;
     color: white;
     margin-bottom: 20px;
@@ -162,9 +162,13 @@
 
 
     async function createModel() {
-        if (recognizer) { // Eğer model zaten oluşturulduysa tekrar oluşturma
-            return recognizer;
-        }
+        // Eğer recognizer zaten oluşturulduysa VE model başarılı yüklendiyse, tekrar yüklemeye gerek yok
+        if (recognizer && modelLoaded) {
+             console.log("Model already created and loaded.");
+             return recognizer;
+         }
+         // Eğer recognizer varsa ama modelLoaded false ise, önceki yükleme başarısız olmuş olabilir, yeniden dene
+
 
         // *** CACHE BUSTING EKLENDİ ***
         // URL'lerin sonuna her çağrıda değişen bir query string ekle
@@ -172,6 +176,8 @@
         const checkpointURL_busted = `${checkpointURL}?v=${timestamp}`;
         const metadataURL_busted = `${metadataURL}?v=${timestamp}`;
         // *****************************
+
+        console.log("Attempting to create model with busted URLs:", checkpointURL_busted, metadataURL_busted);
 
 
         recognizer = speechCommands.create(
@@ -181,10 +187,19 @@
             metadataURL_busted  // Artık cache busting yapılmış URL'i kullan
         );
 
+        console.log("Recognizer created, awaiting ensureModelLoaded...");
         // check that model and metadata are loaded via HTTPS requests.
-        await recognizer.ensureModelLoaded();
-        modelLoaded = true; // Model yüklendi olarak işaretle
-        console.log("Model loaded successfully."); // Model yüklendi logu
+        await recognizer.ensureModelLoaded(); // Model ve metadata yüklenene kadar bekle
+
+        modelLoaded = true; // Model başarılı yüklendi olarak işaretle
+        console.log("Model and metadata ensured loaded successfully.");
+
+        // *** ÖNEMLİ: Model ve metadata yüklendikten sonra etiketleri yeniden al ***
+        classLabels = recognizer.wordLabels();
+        console.log("Class labels updated:", classLabels);
+        // *********************************************************************
+
+
         return recognizer;
     }
 
@@ -196,31 +211,29 @@
 
         updateLoadingMessage("Mikrofon izni bekleniyor..."); // Mesajı göster
         startButton.style.display = 'none'; // Başlat butonunu gizle
-        labelContainer.innerHTML = ''; // Etiket alanını temizle
+         // Etiket alanını temizle. createModel veya burası çalışınca etiketler tekrar oluşturulacak.
+         labelContainer.innerHTML = '';
 
 
         try {
-             if (!modelLoaded) { // Eğer model önceden yüklenmediyse şimdi yükle (olmamalı ama önlem)
-                 updateLoadingMessage("Model yükleniyor..."); // Model yüklenirken mesaj göster
-                 await createModel();
-             }
+             // createModel artık içinde yüklü olup olmadığını kontrol ediyor
+             await createModel(); // Model yüklenir veya önceden yüklüyse döner. classLabels burada güncellenir.
 
              // Model başarılı yüklendiğinde veya yüklüyse mesajı temizle
              updateLoadingMessage(""); // Başarılı olursa mesajı boşalt ve gizle
 
 
-             classLabels = recognizer.wordLabels(); // get class labels
+             // classLabels createModel içinde yüklendikten sonra güncellenir, burada kullanıma hazır olmalı.
              // Etiketler için yer tutucular oluştur
-             if (labelContainer.innerHTML === '') { // Sadece ilk kez veya temizlendiyse oluştur
-                 for (let i = 0; i < classLabels.length; i++) {
-                     const labelDiv = document.createElement("div");
-                     // Başlangıç metni: Etiket ve boş yüzde alanı
-                     labelDiv.innerHTML = `<span>${classLabels[i]}</span><span></span>`;
-                     labelContainer.appendChild(labelDiv);
-                 }
+             for (let i = 0; i < classLabels.length; i++) {
+                 const labelDiv = document.createElement("div");
+                 // Başlangıç metni: Etiket ve boş yüzde alanı
+                 labelDiv.innerHTML = `<span>${classLabels[i]}</span><span></span>`;
+                 labelContainer.appendChild(labelDiv);
              }
 
 
+             console.log("Starting recognizer listen...");
              // listen() takes two arguments:
              // 1. A callback function that is invoked anytime a word is recognized.
              // 2. A configuration object with adjustable fields
@@ -301,6 +314,7 @@
         try {
             updateLoadingMessage("Model Yükleniyor..."); // Başlangıç yükleme mesajı
             await createModel(); // Modeli yükle (Cache busting burada devreye girer)
+
             // Model başarılı yüklendiğinde mesajı temizle
             updateLoadingMessage(""); // Mesajı boşalt ve gizle
 
