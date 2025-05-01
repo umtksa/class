@@ -123,19 +123,19 @@
                             labelContainer.innerHTML = "💀"; // Sneezing face emoji for koh
                             break;
                         case "mouse": // Added case for "mouse"
-                            labelContainer.innerHTML = "👨🏻‍💻"; // Mouse emoji for mouse
+                            labelContainer.innerHTML = "💻"; // Mouse emoji for mouse
                             break;
                          case "_background_noise_":
-                             labelContainer.innerHTML = "🤫"; // Shushing face for background noise (optional)
+                             labelContainer.innerHTML = "💭"; // Shushing face for background noise (optional)
                              break;
                         default:
                             // For any other detected class (including _unknown_ if it exceeds threshold)
-                            labelContainer.innerHTML = "🤔"; // Thinking face emoji
+                            labelContainer.innerHTML = "💭"; // Thinking face emoji
                             break;
                     }
                 } else {
                     // If no class meets the threshold, show the thinking face
-                    labelContainer.innerHTML = "🤔";
+                    labelContainer.innerHTML = "💭";
                 }
 
             }, {
