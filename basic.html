@@ -77,7 +77,7 @@
 
    #label-container div span:last-child {
        font-family: monospace;
-       min-width: 50px; /* Minimum genişlik artırıldı */
+       min-width: 40px; /* Yüzde alanı için minimum genişlik (tekrar 40px yaptım, % yok çünkü) */
        text-align: right;
    }
 
@@ -96,14 +96,20 @@
    #loading-message {
        font-style: italic;
        color: #aaaaaa; /* Yükleme mesajı rengi */
-       margin-bottom: 15px;
-       min-height: 1.3rem; /* Alan yüksekliği */
+       margin-bottom: 15px; /* Mesaj görünürken altında boşluk olsun */
+       min-height: 1.3rem; /* Mesaj görünürken minimum yüksekliği olsun */
        font-size: 1rem;
+       /* Mesaj gizliyken bu özellikler devre dışı kalacak */
    }
 
-   /* Başlık gizlendi */
-   .hidden {
-       display: none;
+   /* Mesaj alanı boş olduğunda veya gizlenmek istendiğinde kullanılacak sınıf */
+   .hidden-message {
+       display: none; /* Elementi tamamen gizler, yer kaplamaz */
+   }
+
+   /* Hata mesajları için ekstra stil */
+   #loading-message.error {
+       color: #ff6b6b; /* Kırmızımsı hata rengi */
    }
 
 
@@ -112,7 +118,7 @@
 <body>
 
 <div class="container">
-    <div id="loading-message">Model Yükleniyor...</div>
+    <div id="loading-message"></div>
     <button type="button" onclick="init()" disabled id="start-button">les go</button>
 
     <div id="label-container"></div>
@@ -141,6 +147,23 @@
     // Modelin yüklenip yüklenmediğini takip etmek için
     let modelLoaded = false;
 
+     // Mesaj gösterme ve gizleme fonksiyonu
+    function updateLoadingMessage(message, isError = false) {
+        loadingMessage.innerText = message;
+        if (message) {
+            loadingMessage.classList.remove('hidden-message'); // Mesaj varsa göster
+             if (isError) {
+                 loadingMessage.classList.add('error'); // Hata sınıfını ekle
+             } else {
+                 loadingMessage.classList.remove('error'); // Hata sınıfını kaldır
+             }
+        } else {
+            loadingMessage.classList.add('hidden-message'); // Mesaj boşsa gizle
+             loadingMessage.classList.remove('error'); // Mesaj yoksa hata sınıfını kaldır
+        }
+    }
+
+
     async function createModel() {
         if (recognizer) { // Eğer model zaten oluşturulduysa tekrar oluşturma
             return recognizer;
@@ -163,20 +186,19 @@
             return; // Zaten dinliyorsa tekrar başlatma
         }
 
-        loadingMessage.innerText = "Mikrofon izni bekleniyor..."; // Mikrofon izni bekleniyor mesajı kalsın
+        updateLoadingMessage("Mikrofon izni bekleniyor..."); // Mesajı göster
         startButton.style.display = 'none'; // Başlat butonunu gizle
-         // Etiket alanını temizle ve başlangıç durumuna getir (opsiyonel, isterseniz bu satırı kaldırabilirsiniz)
-         labelContainer.innerHTML = '';
+        labelContainer.innerHTML = ''; // Etiket alanını temizle
 
 
         try {
              if (!modelLoaded) { // Eğer model önceden yüklenmediyse şimdi yükle
-                 loadingMessage.innerText = "Model yükleniyor..."; // Model yüklenirken mesaj göster
+                 updateLoadingMessage("Model yükleniyor..."); // Model yüklenirken mesaj göster
                  await createModel();
              }
 
-             // Model yüklendiğinde veya yüklüyse mesajı temizle
-             loadingMessage.innerText = ""; // Başarılı olursa mesajı boşalt
+             // Model başarılı yüklendiğinde veya yüklüyse mesajı temizle
+             updateLoadingMessage(""); // Başarılı olursa mesajı boşalt ve gizle
 
 
              classLabels = recognizer.wordLabels(); // get class labels
@@ -184,6 +206,7 @@
              if (labelContainer.innerHTML === '') { // Sadece ilk kez veya temizlendiyse oluştur
                  for (let i = 0; i < classLabels.length; i++) {
                      const labelDiv = document.createElement("div");
+                     // Başlangıç metni: Etiket ve boş yüzde alanı
                      labelDiv.innerHTML = `<span>${classLabels[i]}</span><span></span>`;
                      labelContainer.appendChild(labelDiv);
                  }
@@ -202,6 +225,7 @@
                  for (let i = 0; i < classLabels.length; i++) {
                      // Olasılığı 100 ile çarpıp tam sayıya yuvarla
                      const percentage = Math.round(result.scores[i] * 100);
+                     // Yüzdeyi sadece sayı olarak göster
                      const classPrediction = `<span>${classLabels[i]}</span><span>${percentage}</span>`;
                      const labelDiv = labelContainer.childNodes[i];
                      labelDiv.innerHTML = classPrediction;
@@ -235,7 +259,7 @@
 
          } catch (error) {
              console.error("Model başlatılırken bir hata oluştu:", error);
-             loadingMessage.innerText = "Hata: Model başlatılamadı."; // Hata mesajını güncelle
+             updateLoadingMessage("Hata: Model başlatılamadı.", true); // Hata mesajını göster
              startButton.style.display = 'block'; // Hata durumunda butonu tekrar göster
              isListening = false; // Dinleme durumu hatalı olarak işaretle
          }
@@ -248,12 +272,13 @@
             isListening = false;
             console.log("Dinleme durduruldu.");
             startButton.style.display = 'block'; // Durdurunca butonu tekrar göster
-            loadingMessage.innerText = ""; // Durdurulduğunda mesajı temizle
+            updateLoadingMessage(""); // Durdurulduğunda mesajı temizle ve gizle
+
              // Etiketleri eski haline getirebilir veya temizleyebilirsiniz
              const labelDivs = labelContainer.childNodes;
              if (classLabels) { // classLabels yüklüyse etiketleri eski haline getir
                  for (let i = 0; i < labelDivs.length; i++) {
-                     labelDivs[i].innerHTML = `<span>${classLabels[i]}</span><span></span>`;
+                     labelDivs[i].innerHTML = `<span>${classLabels[i]}</span><span></span>`; // Yüzdeyi boşalt
                      labelDivs[i].classList.remove('highest-confidence'); // Vurguyu kaldır
                  }
              } else { // classLabels yüklü değilse tamamen temizle
@@ -266,10 +291,10 @@
     // Sayfa yüklendiğinde modeli önceden yüklemeye başla
     async function preloadModel() {
         try {
-            loadingMessage.innerText = "Model Yükleniyor..."; // Başlangıç yükleme mesajı
+            updateLoadingMessage("Model Yükleniyor..."); // Başlangıç yükleme mesajı
             await createModel(); // Modeli yükle
-            // Model başarılı yüklendiğinde spesifik mesaj gösterme
-            loadingMessage.innerText = ""; // Mesajı boşalt
+            // Model başarılı yüklendiğinde mesajı temizle
+            updateLoadingMessage(""); // Mesajı boşalt ve gizle
 
             startButton.disabled = false; // Butonu aktif et
             startButton.style.display = 'block'; // Butonun görünür olduğundan emin ol
@@ -277,11 +302,12 @@
 
         } catch (error) {
             console.error("Model ön yüklenirken bir hata oluştu:", error);
-            loadingMessage.innerText = "Hata: Model ön yüklenemedi."; // Hata mesajını güncelle
+            updateLoadingMessage("Hata: Model ön yüklenemedi.", true); // Hata mesajını göster
         }
     }
 
-    preloadModel(); // Sayfa yüklendiğinde modeli ön yüklemeyi başlat
+    // Sayfa yüklendiğinde ilk yükleme işlemini başlat
+    preloadModel();
 
 </script>
 
