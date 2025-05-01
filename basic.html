@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Teachable Machine Ses Modeli</title>
-<meta charset="UTF-8">
+<title>Ses Modeli</title> <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body {
@@ -13,28 +12,32 @@
     justify-content: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #f0f0f0;
+    background-color: #1e1e1e; /* Koyu arka plan */
+    color: #f0f0f0; /* Açık metin rengi */
   }
 
   .container {
-      background-color: #fff;
-      padding: 20px;
+      background-color: #2d2d2d; /* Konteyner için biraz daha açık koyu renk */
+      padding: 25px; /* Padding artırıldı */
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Koyu gölge */
       text-align: center;
-      width: 90%; /* Konteyner genişliği */
-      max-width: 500px; /* Maksimum genişlik */
+      width: 90%;
+      max-width: 500px;
   }
 
+  /* H1 başlığı kaldırıldığı için bu kısım artık gerekmeyebilir,
+     ancak başka başlıklar kullanırsanız diye bırakılabilir.
   h1 {
-      color: #333;
+      color: #f0f0f0;
       margin-bottom: 20px;
-      font-size: 1.5rem; /* Başlık boyutu */
+      font-size: 1.5rem;
   }
+  */
 
   button {
-    padding: 10px 20px;
-    font-size: 1rem;
+    padding: 12px 24px; /* Buton boyutu artırıldı */
+    font-size: 1.1rem; /* Buton font boyutu */
     cursor: pointer;
     border: none;
     border-radius: 4px;
@@ -49,8 +52,9 @@
   }
 
   button:disabled {
-      background-color: #cccccc;
+      background-color: #555555; /* Koyu modda disabled buton rengi */
       cursor: not-allowed;
+      color: #bbbbbb;
   }
 
   #label-container {
@@ -60,55 +64,61 @@
   }
 
   #label-container div {
-    margin-bottom: 8px;
-    padding: 12px; /* Padding artırıldı */
-    border-bottom: 1px solid #eee;
-    background-color: #e9e9e9;
+    margin-bottom: 10px; /* Boşluk artırıldı */
+    padding: 15px; /* Padding artırıldı */
+    border-bottom: 1px solid #444; /* Koyu modda sınır rengi */
+    background-color: #3a3a3a; /* Etiket arka planı */
     border-radius: 4px;
-    font-size: 1.1rem; /* Font boyutu artırıldı */
-    color: #333;
-    display: flex; /* Flexbox kullanarak etiket ve yüzdeyi hizala */
-    justify-content: space-between; /* Etiket ve yüzdeyi iki yana yasla */
-    align-items: center; /* Dikeyde ortala */
+    font-size: 1.1rem;
+    color: #f0f0f0; /* Etiket metin rengi */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease; /* Vurgu geçişi */
   }
 
    #label-container div span:first-child {
-       font-weight: bold; /* Etiketi kalın yap */
-       margin-right: 10px; /* Etiket ile yüzde arasına boşluk koy */
+       font-weight: bold;
+       margin-right: 15px; /* Boşluk artırıldı */
    }
 
    #label-container div span:last-child {
-       font-family: monospace; /* Yüzde için sabit genişlikli font */
-       min-width: 40px; /* Yüzde alanı için minimum genişlik */
-       text-align: right; /* Yüzdeyi sağa yasla */
+       font-family: monospace;
+       min-width: 50px; /* Minimum genişlik artırıldı */
+       text-align: right;
    }
 
 
    #label-container div.highest-confidence {
-       background-color: #d4edda; /* Yeşilimsi arka plan */
-       border-color: #c3e6cb;
-       color: #155724; /* Daha koyu yeşil metin */
+       background-color: #4caf50; /* Yeşil vurgu rengi (Materyal Design yeşil 500) */
+       border-color: #81c784; /* Daha açık yeşil sınır */
+       color: #1a237e; /* Vurgulu metin için koyu mavi (isteğe bağlı, kontrast için) */
    }
 
     #label-container div.highest-confidence span:first-child {
-       font-weight: bold; /* Etiketi kalın yap */
+       font-weight: bold;
     }
 
 
    #loading-message {
        font-style: italic;
-       color: #555;
+       color: #aaaaaa; /* Yükleme mesajı rengi */
        margin-bottom: 15px;
-       min-height: 1.2rem; /* Mesaj alanı için minimum yükseklik */
+       min-height: 1.3rem; /* Alan yüksekliği */
+       font-size: 1rem;
    }
+
+   /* Başlık gizlendi */
+   .hidden {
+       display: none;
+   }
+
 
 </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Teachable Machine Ses Modeli</h1>
-
     <div id="loading-message">Model Yükleniyor...</div>
     <button type="button" onclick="init()" disabled id="start-button">Başlat</button>
 
@@ -135,8 +145,13 @@
     const labelContainer = document.getElementById("label-container");
     const loadingMessage = document.getElementById("loading-message");
 
+    // Modelin yüklenip yüklenmediğini takip etmek için
+    let modelLoaded = false;
 
     async function createModel() {
+        if (recognizer) { // Eğer model zaten oluşturulduysa tekrar oluşturma
+            return recognizer;
+        }
         recognizer = speechCommands.create(
             "BROWSER_FFT", // fourier transform type, not useful to change
             undefined, // speech commands vocabulary feature, not useful for your models
@@ -145,7 +160,7 @@
 
         // check that model and metadata are loaded via HTTPS requests.
         await recognizer.ensureModelLoaded();
-
+        modelLoaded = true; // Model yüklendi olarak işaretle
         return recognizer;
     }
 
@@ -159,8 +174,8 @@
         startButton.style.display = 'none'; // Başlat butonunu gizle
 
         try {
-             if (!recognizer) { // Model henüz yüklenmediyse yükle
-                recognizer = await createModel();
+             if (!modelLoaded) { // Eğer model önceden yüklenmediyse şimdi yükle
+                 await createModel();
              }
              classLabels = recognizer.wordLabels(); // get class labels
              labelContainer.innerHTML = ''; // Önceki etiketleri temizle
@@ -215,9 +230,8 @@
              });
 
              isListening = true; // Dinleme başladı olarak işaretle
+             console.log("Dinleme Başladı.");
 
-             // Stop the recognition in 5 seconds.
-             // setTimeout(() => stopListening(), 5000); // Eğer otomatik durdurma istenirse
 
          } catch (error) {
              console.error("Model başlatılırken bir hata oluştu:", error);
@@ -227,16 +241,20 @@
          }
     }
 
-    // Modeli durdurmak için yeni fonksiyon
+    // Modeli durdurmak için yeni fonksiyon (şu an kullanılmıyor ama durdurma butonu eklerseniz lazım olur)
     async function stopListening() {
         if (recognizer && isListening) {
             await recognizer.stopListening();
             isListening = false;
             console.log("Dinleme durduruldu.");
-            // İsterseniz burada durdurma mesajı gösterebilir veya butonları ayarlayabilirsiniz.
             startButton.style.display = 'block'; // Durdurunca butonu tekrar göster
             loadingMessage.innerText = "Dinleme Durduruldu."; // Mesajı güncelle
-            labelContainer.innerHTML = ''; // Etiketleri temizle
+             // Etiketleri eski haline getirebilir veya temizleyebilirsiniz
+             const labelDivs = labelContainer.childNodes;
+             for (let i = 0; i < labelDivs.length; i++) {
+                 labelDivs[i].innerHTML = `<span>${classLabels[i]}</span><span>-- %</span>`;
+                 labelDivs[i].classList.remove('highest-confidence'); // Vurguyu kaldır
+             }
         }
     }
 
