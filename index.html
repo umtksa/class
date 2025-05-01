@@ -262,7 +262,7 @@
                  }
 
                  // En yüksek olasılıklı etiketi vurgula (eğer eşiğin üzerindeyse)
-                 if (highestScoreIndex !== -1 && result.scores[highestScoreIndex] >= 0.75) { // Eşiği burada da kontrol et
+                 if (highestScoreIndex !== -1 && result.scores[highestScoreIndex] >= 0.90) { // Eşiği burada da kontrol et
                       labelContainer.childNodes[highestScoreIndex].classList.add('highest-confidence');
                  }
 
@@ -312,7 +312,7 @@
     // Sayfa yüklendiğinde modeli önceden yüklemeye başla
     async function preloadModel() {
         try {
-            updateLoadingMessage("Model Yükleniyor..."); // Başlangıç yükleme mesajı
+            updateLoadingMessage(""); // Başlangıç yükleme mesajı
             await createModel(); // Modeli yükle (Cache busting burada devreye girer)
 
             // Model başarılı yüklendiğinde mesajı temizle
