@@ -31,13 +31,6 @@
       max-width: 600px; /* Maksimum genişlik */
       box-sizing: border-box; /* Paddingin genişliği etkilememesi için */
   }
-
-  h1 {
-      font-size: 2em; /* Başlık boyutu */
-      margin-bottom: 20px; /* Başlık alt boşluğu */
-      color: #f0f0f0; /* Başlık rengi */
-  }
-
   button {
     padding: 15px 30px; /* Buton boyutu artırıldı */
     font-size: 1.2rem; /* Buton font boyutu */
@@ -46,7 +39,6 @@
     border-radius: 5px; /* Kenar yumuşatma */
     background-color: #007bff;
     color: white;
-    margin-bottom: 25px; /* Buton altında boşluk */
     transition: background-color 0.3s ease;
     display: inline-block; /* BUTON HEP INLINE-BLOCK KALACAK ve text-align: center ile ortalanacak */
     font-family: sans-serif; /* Buton fontu sistem fontu kalsın, daha okunur olabilir */
@@ -141,8 +133,8 @@
 <body>
 
 <div class="container">
-    <h1>Konuşma Tanıma</h1> <div id="loading-message"></div>
-    <button type="button" onclick="init()" disabled id="start-button" class="hidden-button">Başla</button> <div id="label-container"></div>
+ <div id="loading-message"></div>
+    <button type="button" onclick="init()" disabled id="start-button" class="hidden-button">lesgo</button> <div id="label-container"></div>
 </div>
 
 
@@ -157,7 +149,7 @@
     const checkpointURL = "https://raw.githubusercontent.com/umtksa/class/refs/heads/main/model.json"; // model topology
     const metadataURL = "https://raw.githubusercontent.com/umtksa/class/refs/heads/main/metadata.json"; // model metadata
 
-    const NOTHING_LABEL = "nothing"; // 'nothing' etiketini belirledik
+    const NOTHING_LABEL = "Background Noise"; // 'nothing' etiketini belirledik
     const HIGHLIGHT_THRESHOLD = 95; // Vurgu için yüzde eşiği (95% ve üzeri)
 
     let recognizer;
@@ -361,7 +353,7 @@
     async function preloadModel() {
         try {
             // Başlangıç yükleme mesajını göster ve butonu devre dışı bırak
-            updateLoadingMessage("Model Yükleniyor...");
+            updateLoadingMessage("");
             startButton.disabled = true;
             // Butonun gizli olmadığından emin ol (ilk yüklemede görünecek)
             startButton.classList.remove('hidden-button');
@@ -375,7 +367,7 @@
             updateLoadingMessage(""); // Mesajı boşalt ve gizle
 
             startButton.disabled = false; // Butonu aktif et
-            startButton.innerText = "Başla"; // Buton metnini "Başla" yap
+            startButton.innerText = "lesgo"; // Buton metnini "Başla" yap
             console.log("Model ön yüklendi. Başlamak için 'Başla' butonuna basın.");
 
         } catch (error) {
