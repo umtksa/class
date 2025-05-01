@@ -1,156 +1,337 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>hıms</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column; /* Arrange items vertically */
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            background-color: #000000;
-            font-family: sans-serif;
-        }
-        #label-container {
-            font-size: 10em; /* Make the emoji large */
-            text-align: center;
-            margin-top: 20px; /* Add some space above the emoji */
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 1.2em;
-            cursor: pointer;
-            border: none;
-            border-radius: 8px;
-            background-color: #4CAF50;
-            color: white;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-    </style>
+<title>duf</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #1e1e1e; /* Koyu arka plan */
+    color: #f0f0f0; /* Açık metin rengi */
+  }
+
+  .container {
+      background-color: #2d2d2d; /* Konteyner için biraz daha açık koyu renk */
+      padding: 25px; /* Padding artırıldı */
+      border-radius: 4px;
+      text-align: center; /* İçeriği (varsayılan olarak inline/inline-block) ortalar */
+      width: 90%;
+      max-width: 500px;
+  }
+
+  button {
+    padding: 12px 24px; /* Buton boyutu artırıldı */
+    font-size: 1.1rem; /* Buton font boyutu */
+    cursor: pointer;
+    border: none;
+    border-radius: 4psx;
+    background-color: #007bff;
+    color: white;
+    margin-bottom: 20px;
+    transition: background-color 0.3s ease;
+    display: inline-block; /* Butonlar varsayılan olarak inline-block'tur, text-align center ile ortalanırlar */
+  }
+
+  button:hover:not(:disabled) {
+    background-color: #0056b3;
+  }
+
+  button:disabled {
+      background-color: #555555; /* Koyu modda disabled buton rengi */
+      cursor: not-allowed;
+      color: #bbbbbb;
+  }
+
+  #label-container {
+    margin-top: 20px;
+    text-align: left; /* Etiket içeriği sola yaslı */
+    width: 100%;
+  }
+
+  #label-container div {
+    margin-bottom: 10px; /* Boşluk artırıldı */
+    padding: 15px; /* Padding artırıldı */
+    background-color: #3a3a3a; /* Etiket arka planı */
+    border-radius: 4px;
+    font-size: 1.1rem;
+    color: #f0f0f0; /* Etiket metin rengi */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease; /* Vurgu geçişi */
+  }
+
+   #label-container div span:first-child {
+       font-weight: bold;
+       margin-right: 15px; /* Boşluk artırıldı */
+   }
+
+   #label-container div span:last-child {
+       font-family: monospace;
+       min-width: 40px; /* Yüzde alanı için minimum genişlik (tekrar 40px yaptım, % yok çünkü) */
+       text-align: right;
+   }
+
+
+   #label-container div.highest-confidence {
+       background-color: #4caf50; /* Yeşil vurgu rengi (Materyal Design yeşil 500) */
+       color: #f0f0f0;
+   }
+
+    #label-container div.highest-confidence span:first-child {
+       font-weight: bold;
+    }
+
+
+   #loading-message {
+       font-style: italic;
+       color: #aaaaaa; /* Yükleme mesajı rengi */
+       margin-bottom: 15px; /* Mesaj görünürken altında boşluk olsun */
+       min-height: 1.3rem; /* Mesaj görünürken minimum yüksekliği olsun */
+       font-size: 1rem;
+       /* Mesaj gizliyken bu özellikler devre dışı kalacak */
+   }
+
+   /* Mesaj alanı boş olduğunda veya gizlenmek istendiğinde kullanılacak sınıf */
+   .hidden-message {
+       display: none; /* Elementi tamamen gizler, yer kaplamaz */
+   }
+
+   /* Hata mesajları için ekstra stil */
+   #loading-message.error {
+       color: #ff6b6b; /* Kırmızımsı hata rengi */
+   }
+
+
+</style>
 </head>
 <body>
-    <button type="button" onclick="init()">lesgooo!</button>
 
-    <div id="label-container">🤔</div> <script type="text/javascript">
-        // more documentation available at
-        // https://github.com/tensorflow/tfjs-models/tree/master/speech-commands
+<div class="container">
+    <div id="loading-message"></div>
+    <button type="button" onclick="init()" disabled id="start-button">les go</button>
 
-        // the link to your model provided by Teachable Machine export panel
-        // IMPORTANT: Replace the placeholder below with your actual model URL
-        
+    <div id="label-container"></div>
+</div>
 
-        let recognizer;
-        let classLabels;
-        const labelContainer = document.getElementById("label-container");
-        let isListening = false; // Flag to prevent multiple starts
 
-        async function createModel() {
-            const checkpointURL = "https://raw.githubusercontent.com/umtksa/links/refs/heads/master/class/model.json"; // model topology
-            const metadataURL = "https://raw.githubusercontent.com/umtksa/links/refs/heads/master/class/metadata.json"; // model metadata
-            // Create the recognizer model
-            recognizer = speechCommands.create(
-                "BROWSER_FFT", // fourier transform type, not useful to change
-                undefined, // speech commands vocabulary feature, not useful for your models
-                checkpointURL,
-                metadataURL);
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
 
-            // check that model and metadata are loaded via HTTPS requests.
-            await recognizer.ensureModelLoaded();
+<script type="text/javascript">
+    // more documentation available at
+    // https://github.com/tensorflow/tfjs-models/tree/master/speech-commands
 
-            return recognizer;
+    // the link to your model provided by Teachable Machine export panel
+    const checkpointURL = "https://raw.githubusercontent.com/umtksa/class/refs/heads/main/model.json"; // model topology
+    const metadataURL = "https://raw.githubusercontent.com/umtksa/class/refs/heads/main/metadata.json"; // model metadata
+
+    let recognizer;
+    let classLabels;
+    let isListening = false; // Dinleme durumunu takip etmek için
+
+    const startButton = document.getElementById("start-button");
+    const labelContainer = document.getElementById("label-container");
+    const loadingMessage = document.getElementById("loading-message");
+
+    // Modelin yüklenip yüklenmediğini takip etmek için
+    let modelLoaded = false;
+
+     // Mesaj gösterme ve gizleme fonksiyonu
+    function updateLoadingMessage(message, isError = false) {
+        loadingMessage.innerText = message;
+        if (message) {
+            loadingMessage.classList.remove('hidden-message'); // Mesaj varsa göster
+             if (isError) {
+                 loadingMessage.classList.add('error'); // Hata sınıfını ekle
+             } else {
+                 loadingMessage.classList.remove('error'); // Hata sınıfını kaldır
+             }
+        } else {
+            loadingMessage.classList.add('hidden-message'); // Mesaj boşsa gizle
+             loadingMessage.classList.remove('error'); // Mesaj yoksa hata sınıfını kaldır
+        }
+    }
+
+
+    async function createModel() {
+        // Eğer recognizer zaten oluşturulduysa VE model başarılı yüklendiyse, tekrar yüklemeye gerek yok
+        if (recognizer && modelLoaded) {
+             console.log("Model already created and loaded.");
+             return recognizer;
+         }
+         // Eğer recognizer varsa ama modelLoaded false ise, önceki yükleme başarısız olmuş olabilir, yeniden dene
+
+
+        // *** CACHE BUSTING EKLENDİ ***
+        // URL'lerin sonuna her çağrıda değişen bir query string ekle
+        const timestamp = Date.now(); // Benzersiz bir değer (şimdiki zaman)
+        const checkpointURL_busted = `${checkpointURL}?v=${timestamp}`;
+        const metadataURL_busted = `${metadataURL}?v=${timestamp}`;
+        // *****************************
+
+        console.log("Attempting to create model with busted URLs:", checkpointURL_busted, metadataURL_busted);
+
+
+        recognizer = speechCommands.create(
+            "BROWSER_FFT", // fourier transform type, not useful to change
+            undefined, // speech commands vocabulary feature, not useful for your models
+            checkpointURL_busted, // Artık cache busting yapılmış URL'i kullan
+            metadataURL_busted  // Artık cache busting yapılmış URL'i kullan
+        );
+
+        console.log("Recognizer created, awaiting ensureModelLoaded...");
+        // check that model and metadata are loaded via HTTPS requests.
+        await recognizer.ensureModelLoaded(); // Model ve metadata yüklenene kadar bekle
+
+        modelLoaded = true; // Model başarılı yüklendi olarak işaretle
+        console.log("Model and metadata ensured loaded successfully.");
+
+        // *** ÖNEMLİ: Model ve metadata yüklendikten sonra etiketleri yeniden al ***
+        classLabels = recognizer.wordLabels();
+        console.log("Class labels updated:", classLabels);
+        // *********************************************************************
+
+
+        return recognizer;
+    }
+
+    async function init() {
+        if (isListening) {
+            console.log("Zaten dinleniyor.");
+            return; // Zaten dinliyorsa tekrar başlatma
         }
 
-        async function init() {
-            // Prevent starting multiple times if the button is clicked rapidly
-            if (isListening) {
-                console.log("Already listening...");
-                return;
-            }
-            isListening = true;
-
-            // Create the model if it hasn't been created yet
-            if (!recognizer) {
-                 recognizer = await createModel();
-                 classLabels = recognizer.wordLabels(); // get class labels
-            }
-
-            // Hide the start button after it's clicked
-            document.querySelector('button').style.display = 'none';
+        updateLoadingMessage("Mikrofon izni bekleniyor..."); // Mesajı göster
+        startButton.style.display = 'none'; // Başlat butonunu gizle
+         // Etiket alanını temizle. createModel veya burası çalışınca etiketler tekrar oluşturulacak.
+         labelContainer.innerHTML = '';
 
 
-            // The probability threshold for a class to be considered detected.
-            // Adjust this value if the model is not detecting sounds reliably.
-            // Lowering it might make it more sensitive but could also trigger on noise.
-            // Raising it makes it less sensitive, requiring higher confidence.
-            const probabilityThreshold = 0.75; // You can adjust this value
+        try {
+             // createModel artık içinde yüklü olup olmadığını kontrol ediyor
+             await createModel(); // Model yüklenir veya önceden yüklüyse döner. classLabels burada güncellenir.
 
-            // listen() takes two arguments:
-            // 1. A callback function that is invoked anytime a word is recognized.
-            // 2. A configuration object with adjustable fields
-            recognizer.listen(result => {
-                const scores = result.scores; // probability of prediction for each class
-                // Find the class with the highest probability
-                let maxScore = -Infinity;
-                let maxIndex = -1;
-                for (let i = 0; i < scores.length; i++) {
-                    if (scores[i] > maxScore) {
-                        maxScore = scores[i];
-                        maxIndex = i;
-                    }
-                }
+             // Model başarılı yüklendiğinde veya yüklüyse mesajı temizle
+             updateLoadingMessage(""); // Başarılı olursa mesajı boşalt ve gizle
 
-                const detectedClass = classLabels[maxIndex];
 
-                // Update the emoji based on the detected class and probability
-                if (maxScore > probabilityThreshold) {
-                    switch (detectedClass) {                    
-                        case "cakmak":
-                            labelContainer.innerHTML = "🔥"; // Flame emoji for cakmak
-                            break;
-                        case "kahve":
-                            labelContainer.innerHTML = "☕"; // Coffee emoji for kahve
-                            break;
-                        case "koh":
-                            labelContainer.innerHTML = "💀"; // Sneezing face emoji for koh
-                            break;
-                        case "mouse": // Added case for "mouse"
-                            labelContainer.innerHTML = "💻"; // Mouse emoji for mouse
-                            break;
-                         case "_background_noise_":
-                             labelContainer.innerHTML = "💭"; // Shushing face for background noise (optional)
-                             break;
-                        default:
-                            // For any other detected class (including _unknown_ if it exceeds threshold)
-                            labelContainer.innerHTML = "💭"; // Thinking face emoji
-                            break;
-                    }
-                } else {
-                    // If no class meets the threshold, show the thinking face
-                    labelContainer.innerHTML = "💭";
-                }
+             // classLabels createModel içinde yüklendikten sonra güncellenir, burada kullanıma hazır olmalı.
+             // Etiketler için yer tutucular oluştur
+             for (let i = 0; i < classLabels.length; i++) {
+                 const labelDiv = document.createElement("div");
+                 // Başlangıç metni: Etiket ve boş yüzde alanı
+                 labelDiv.innerHTML = `<span>${classLabels[i]}</span><span></span>`;
+                 labelContainer.appendChild(labelDiv);
+             }
 
-            }, {
-                includeSpectrogram: false, // Set to true if you need the spectrogram data in the result object
-                probabilityThreshold: probabilityThreshold, // Use the defined threshold for triggering the callback
-                invokeCallbackOnNoiseAndUnknown: true, // Set to true to trigger the callback for _background_noise_ and _unknown_ classes
-                overlapFactor: 0.50 // Controls overlap between audio windows. Values between 0.5 and 0.75 are common.
-            });
 
-            console.log("Listening started...");
-            // The button is now hidden instead of just disabled
+             console.log("Starting recognizer listen...");
+             // listen() takes two arguments:
+             // 1. A callback function that is invoked anytime a word is recognized.
+             // 2. A configuration object with adjustable fields
+             recognizer.listen(result => {
+                 const scores = result.scores; // probability of prediction for each class
+                 let highestScore = -1;
+                 let highestScoreIndex = -1;
+
+                 // render the probability scores per class
+                 for (let i = 0; i < classLabels.length; i++) {
+                     // Olasılığı 100 ile çarpıp tam sayıya yuvarla
+                     const percentage = Math.round(result.scores[i] * 100);
+                     // Yüzdeyi sadece sayı olarak göster
+                     const classPrediction = `<span>${classLabels[i]}</span><span>${percentage}</span>`;
+                     const labelDiv = labelContainer.childNodes[i];
+                     labelDiv.innerHTML = classPrediction;
+
+                     // En yüksek olasılığı bul
+                     if (result.scores[i] > highestScore) {
+                         highestScore = result.scores[i];
+                         highestScoreIndex = i;
+                     }
+
+                     // Önceki vurguyu kaldır
+                     labelDiv.classList.remove('highest-confidence');
+                 }
+
+                 // En yüksek olasılıklı etiketi vurgula (eğer eşiğin üzerindeyse)
+                 if (highestScoreIndex !== -1 && result.scores[highestScoreIndex] >= 0.75) { // Eşiği burada da kontrol et
+                      labelContainer.childNodes[highestScoreIndex].classList.add('highest-confidence');
+                 }
+
+
+             }, {
+                 includeSpectrogram: true, // in case listen should return result.spectrogram
+                 probabilityThreshold: 0.75,
+                 invokeCallbackOnNoiseAndUnknown: true,
+                 overlapFactor: 0.50 // probably want between 0.5 and 0.75. More info in README
+             });
+
+             isListening = true; // Dinleme başladı olarak işaretle
+             console.log("Dinleme Başladı.");
+
+
+         } catch (error) {
+             console.error("Model başlatılırken bir hata oluştu:", error);
+             updateLoadingMessage("Hata: Model başlatılamadı.", true); // Hata mesajını göster
+             startButton.style.display = 'block'; // Hata durumunda butonu tekrar göster
+             isListening = false; // Dinleme durumu hatalı olarak işaretle
+         }
+    }
+
+    // Modeli durdurmak için yeni fonksiyon (şu an kullanılmıyor ama durdurma butonu eklerseniz lazım olur)
+    async function stopListening() {
+        if (recognizer && isListening) {
+            await recognizer.stopListening();
+            isListening = false;
+            console.log("Dinleme durduruldu.");
+            startButton.style.display = 'block'; // Durdurunca butonu tekrar göster
+            updateLoadingMessage(""); // Durdurulduğunda mesajı temizle ve gizle
+
+             // Etiketleri eski haline getirebilir veya temizleyebilirsiniz
+             const labelDivs = labelContainer.childNodes;
+             if (classLabels) { // classLabels yüklüyse etiketleri eski haline getir
+                 for (let i = 0; i < labelDivs.length; i++) {
+                     labelDivs[i].innerHTML = `<span>${classLabels[i]}</span><span></span>`; // Yüzdeyi boşalt
+                     labelDivs[i].classList.remove('highest-confidence'); // Vurguyu kaldır
+                 }
+             } else { // classLabels yüklü değilse tamamen temizle
+                 labelContainer.innerHTML = '';
+             }
         }
+    }
 
-        // The init function is now called by clicking the button
 
-    </script>
+    // Sayfa yüklendiğinde modeli önceden yüklemeye başla
+    async function preloadModel() {
+        try {
+            updateLoadingMessage("Model Yükleniyor..."); // Başlangıç yükleme mesajı
+            await createModel(); // Modeli yükle (Cache busting burada devreye girer)
+
+            // Model başarılı yüklendiğinde mesajı temizle
+            updateLoadingMessage(""); // Mesajı boşalt ve gizle
+
+            startButton.disabled = false; // Butonu aktif et
+            startButton.style.display = 'block'; // Butonun görünür olduğundan emin ol
+            console.log("Model ön yüklendi.");
+
+        } catch (error) {
+            console.error("Model ön yüklenirken bir hata oluştu:", error);
+            updateLoadingMessage("Hata: Model ön yüklenemedi.", true); // Hata mesajını göster
+        }
+    }
+
+    // Sayfa yüklendiğinde ilk yükleme işlemini başlat
+    preloadModel();
+
+</script>
+
 </body>
 </html>
