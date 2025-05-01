@@ -12,8 +12,8 @@
     const URL = "./my_model/";
 
     async function createModel() {
-        const checkpointURL = URL + "model.json"; // model topology
-        const metadataURL = URL + "metadata.json"; // model metadata
+        const checkpointURL = URL + "https://raw.githubusercontent.com/umtksa/links/refs/heads/master/class/model.json"; // model topology
+        const metadataURL = URL + "https://raw.githubusercontent.com/umtksa/links/refs/heads/master/class/metadata.json"; // model metadata
 
         const recognizer = speechCommands.create(
             "BROWSER_FFT", // fourier transform type, not useful to change
