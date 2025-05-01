@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Ses Modeli</title> <meta charset="UTF-8">
+<title>Ses Modeli</title>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body {
@@ -21,19 +22,10 @@
       padding: 25px; /* Padding artırıldı */
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Koyu gölge */
-      text-align: center;
+      text-align: center; /* İçeriği (varsayılan olarak inline/inline-block) ortalar */
       width: 90%;
       max-width: 500px;
   }
-
-  /* H1 başlığı kaldırıldığı için bu kısım artık gerekmeyebilir,
-     ancak başka başlıklar kullanırsanız diye bırakılabilir.
-  h1 {
-      color: #f0f0f0;
-      margin-bottom: 20px;
-      font-size: 1.5rem;
-  }
-  */
 
   button {
     padding: 12px 24px; /* Buton boyutu artırıldı */
@@ -45,6 +37,7 @@
     color: white;
     margin-bottom: 20px;
     transition: background-color 0.3s ease;
+    display: inline-block; /* Butonlar varsayılan olarak inline-block'tur, text-align center ile ortalanırlar */
   }
 
   button:hover:not(:disabled) {
@@ -59,7 +52,7 @@
 
   #label-container {
     margin-top: 20px;
-    text-align: left;
+    text-align: left; /* Etiket içeriği sola yaslı */
     width: 100%;
   }
 
@@ -120,7 +113,7 @@
 
 <div class="container">
     <div id="loading-message">Model Yükleniyor...</div>
-    <button type="button" onclick="init()" disabled id="start-button">Başlat</button>
+    <button type="button" onclick="init()" disabled id="start-button">Les Go</button>
 
     <div id="label-container"></div>
 </div>
@@ -170,25 +163,32 @@
             return; // Zaten dinliyorsa tekrar başlatma
         }
 
-        loadingMessage.innerText = "Mikrofon izni bekleniyor..."; // Yükleme mesajını güncelle
+        loadingMessage.innerText = "Mikrofon izni bekleniyor..."; // Mikrofon izni bekleniyor mesajı kalsın
         startButton.style.display = 'none'; // Başlat butonunu gizle
+         // Etiket alanını temizle ve başlangıç durumuna getir (opsiyonel, isterseniz bu satırı kaldırabilirsiniz)
+         labelContainer.innerHTML = '';
+
 
         try {
              if (!modelLoaded) { // Eğer model önceden yüklenmediyse şimdi yükle
+                 loadingMessage.innerText = "Model yükleniyor..."; // Model yüklenirken mesaj göster
                  await createModel();
              }
-             classLabels = recognizer.wordLabels(); // get class labels
-             labelContainer.innerHTML = ''; // Önceki etiketleri temizle
 
-             // Etiketler için yer tutucular oluştur
-             for (let i = 0; i < classLabels.length; i++) {
-                 const labelDiv = document.createElement("div");
-                 // Başlangıç metni: Etiket ve yüzde alanı için span'ler
-                 labelDiv.innerHTML = `<span>${classLabels[i]}</span><span>-- %</span>`;
-                 labelContainer.appendChild(labelDiv);
+             // Model yüklendiğinde veya yüklüyse mesajı temizle
+             loadingMessage.innerText = ""; // Başarılı olursa mesajı boşalt
+
+
+             classLabels = recognizer.wordLabels(); // get class labels
+             // Etiketler için yer tutucular oluştur (eğer init() tekrar çalışırsa diye temizledik)
+             if (labelContainer.innerHTML === '') { // Sadece ilk kez veya temizlendiyse oluştur
+                 for (let i = 0; i < classLabels.length; i++) {
+                     const labelDiv = document.createElement("div");
+                     labelDiv.innerHTML = `<span>${classLabels[i]}</span><span>-- %</span>`;
+                     labelContainer.appendChild(labelDiv);
+                 }
              }
 
-             loadingMessage.style.display = 'none'; // Yükleme mesajını gizle
 
              // listen() takes two arguments:
              // 1. A callback function that is invoked anytime a word is recognized.
@@ -235,7 +235,7 @@
 
          } catch (error) {
              console.error("Model başlatılırken bir hata oluştu:", error);
-             loadingMessage.innerText = "Model başlatılamadı.";
+             loadingMessage.innerText = "Hata: Model başlatılamadı."; // Hata mesajını güncelle
              startButton.style.display = 'block'; // Hata durumunda butonu tekrar göster
              isListening = false; // Dinleme durumu hatalı olarak işaretle
          }
@@ -248,12 +248,16 @@
             isListening = false;
             console.log("Dinleme durduruldu.");
             startButton.style.display = 'block'; // Durdurunca butonu tekrar göster
-            loadingMessage.innerText = "Dinleme Durduruldu."; // Mesajı güncelle
+            loadingMessage.innerText = ""; // Durdurulduğunda mesajı temizle
              // Etiketleri eski haline getirebilir veya temizleyebilirsiniz
              const labelDivs = labelContainer.childNodes;
-             for (let i = 0; i < labelDivs.length; i++) {
-                 labelDivs[i].innerHTML = `<span>${classLabels[i]}</span><span>-- %</span>`;
-                 labelDivs[i].classList.remove('highest-confidence'); // Vurguyu kaldır
+             if (classLabels) { // classLabels yüklüyse etiketleri eski haline getir
+                 for (let i = 0; i < labelDivs.length; i++) {
+                     labelDivs[i].innerHTML = `<span>${classLabels[i]}</span><span>-- %</span>`;
+                     labelDivs[i].classList.remove('highest-confidence'); // Vurguyu kaldır
+                 }
+             } else { // classLabels yüklü değilse tamamen temizle
+                 labelContainer.innerHTML = '';
              }
         }
     }
@@ -262,14 +266,18 @@
     // Sayfa yüklendiğinde modeli önceden yüklemeye başla
     async function preloadModel() {
         try {
-            loadingMessage.innerText = "Model Yükleniyor...";
+            loadingMessage.innerText = "Model Yükleniyor..."; // Başlangıç yükleme mesajı
             await createModel(); // Modeli yükle
-            loadingMessage.innerText = "Model Yüklendi. Başlat'a tıklayın.";
+            // Model başarılı yüklendiğinde spesifik mesaj gösterme
+            loadingMessage.innerText = ""; // Mesajı boşalt
+
             startButton.disabled = false; // Butonu aktif et
             startButton.style.display = 'block'; // Butonun görünür olduğundan emin ol
+            console.log("Model ön yüklendi.");
+
         } catch (error) {
             console.error("Model ön yüklenirken bir hata oluştu:", error);
-            loadingMessage.innerText = "Model yüklenemedi.";
+            loadingMessage.innerText = "Hata: Model ön yüklenemedi."; // Hata mesajını güncelle
         }
     }
 
