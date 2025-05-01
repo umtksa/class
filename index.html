@@ -20,7 +20,8 @@
   .container {
       background-color: #2d2d2d; /* Konteyner için biraz daha açık koyu renk */
       padding: 25px; /* Padding artırıldı */
-      border-radius: 4px;
+      border-radius: 8px; /* Kenar yumuşatma */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Koyu gölge */
       text-align: center; /* İçeriği (varsayılan olarak inline/inline-block) ortalar */
       width: 90%;
       max-width: 500px;
@@ -31,12 +32,12 @@
     font-size: 1.1rem; /* Buton font boyutu */
     cursor: pointer;
     border: none;
-    border-radius: 4psx;
+    border-radius: 4px; /* Burada '4psx' yerine '4px' olmalı */
     background-color: #007bff;
     color: white;
     margin-bottom: 20px;
     transition: background-color 0.3s ease;
-    display: inline-block; /* Butonlar varsayılan olarak inline-block'tur, text-align center ile ortalanırlar */
+    display: inline-block; /* BUTON HEP INLINE-BLOCK KALACAK ve text-align: center ile ortalanacak */
   }
 
   button:hover:not(:disabled) {
@@ -75,7 +76,7 @@
 
    #label-container div span:last-child {
        font-family: monospace;
-       min-width: 40px; /* Yüzde alanı için minimum genişlik (tekrar 40px yaptım, % yok çünkü) */
+       min-width: 40px; /* Yüzde alanı için minimum genişlik */
        text-align: right;
    }
 
@@ -109,6 +110,11 @@
        color: #ff6b6b; /* Kırmızımsı hata rengi */
    }
 
+   /* BUTONU GİZLEMEK İÇİN YENİ SINIF */
+   .hidden-button {
+       display: none !important; /* !important ekledim ki JS'deki inline stilleri ezsin */
+   }
+
 
 </style>
 </head>
@@ -116,7 +122,7 @@
 
 <div class="container">
     <div id="loading-message"></div>
-    <button type="button" onclick="init()" disabled id="start-button">les go</button>
+    <button type="button" onclick="init()" id="start-button" class="hidden-button">les go</button>
 
     <div id="label-container"></div>
 </div>
@@ -130,6 +136,7 @@
     // https://github.com/tensorflow/tfjs-models/tree/master/speech-commands
 
     // the link to your model provided by Teachable Machine export panel
+    // Adreslerdeki "links" yerine "class" klasörünü kullandım, sizin kodunuzda öyleydi.
     const checkpointURL = "https://raw.githubusercontent.com/umtksa/class/refs/heads/main/model.json"; // model topology
     const metadataURL = "https://raw.githubusercontent.com/umtksa/class/refs/heads/main/metadata.json"; // model metadata
 
@@ -170,12 +177,12 @@
          // Eğer recognizer varsa ama modelLoaded false ise, önceki yükleme başarısız olmuş olabilir, yeniden dene
 
 
-        // *** CACHE BUSTING EKLENDİ ***
+        // *** CACHE BUSTING ***
         // URL'lerin sonuna her çağrıda değişen bir query string ekle
         const timestamp = Date.now(); // Benzersiz bir değer (şimdiki zaman)
         const checkpointURL_busted = `${checkpointURL}?v=${timestamp}`;
         const metadataURL_busted = `${metadataURL}?v=${timestamp}`;
-        // *****************************
+        // *********************
 
         console.log("Attempting to create model with busted URLs:", checkpointURL_busted, metadataURL_busted);
 
@@ -210,8 +217,9 @@
         }
 
         updateLoadingMessage("Mikrofon izni bekleniyor..."); // Mesajı göster
-        startButton.style.display = 'none'; // Başlat butonunu gizle
-         // Etiket alanını temizle. createModel veya burası çalışınca etiketler tekrar oluşturulacak.
+        // Butonu gizlemek için sınıf kullan
+        startButton.classList.add('hidden-button'); // *** DEĞİŞİKLİK ***
+         // Etiket alanını temizle
          labelContainer.innerHTML = '';
 
 
@@ -281,7 +289,8 @@
          } catch (error) {
              console.error("Model başlatılırken bir hata oluştu:", error);
              updateLoadingMessage("Hata: Model başlatılamadı.", true); // Hata mesajını göster
-             startButton.style.display = 'block'; // Hata durumunda butonu tekrar göster
+             // Hata durumunda butonu göstermek için sınıf kullan
+             startButton.classList.remove('hidden-button'); // *** DEĞİŞİKLİK ***
              isListening = false; // Dinleme durumu hatalı olarak işaretle
          }
     }
@@ -292,7 +301,8 @@
             await recognizer.stopListening();
             isListening = false;
             console.log("Dinleme durduruldu.");
-            startButton.style.display = 'block'; // Durdurunca butonu tekrar göster
+            // Durdurunca butonu göstermek için sınıf kullan
+            startButton.classList.remove('hidden-button'); // *** DEĞİŞİKLİK ***
             updateLoadingMessage(""); // Durdurulduğunda mesajı temizle ve gizle
 
              // Etiketleri eski haline getirebilir veya temizleyebilirsiniz
@@ -312,14 +322,20 @@
     // Sayfa yüklendiğinde modeli önceden yüklemeye başla
     async function preloadModel() {
         try {
-            updateLoadingMessage(""); // Başlangıç yükleme mesajı
+            // updateLoadingMessage("Model Yükleniyor..."); // Başlangıç yükleme mesajı (Artık HTML'de var, JS ile yönetilecek)
+            // HTML'deki başlangıç mesajını göster (JS başlayana kadar)
+            loadingMessage.innerText = "Model Yükleniyor...";
+            loadingMessage.classList.remove('hidden-message'); // Mesajı görünür yap
+
+
             await createModel(); // Modeli yükle (Cache busting burada devreye girer)
 
             // Model başarılı yüklendiğinde mesajı temizle
             updateLoadingMessage(""); // Mesajı boşalt ve gizle
 
             startButton.disabled = false; // Butonu aktif et
-            startButton.style.display = 'block'; // Butonun görünür olduğundan emin ol
+            // Butonun görünür olduğundan emin ol (gizli sınıfı kaldır)
+            startButton.classList.remove('hidden-button'); // *** DEĞİŞİKLİK ***
             console.log("Model ön yüklendi.");
 
         } catch (error) {
