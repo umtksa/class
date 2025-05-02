@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Duff - Progress Bars</title> <meta charset="UTF-8">
+<title>Duff - Div as Progress Bar</title> <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 <style>
   body {
-    font-family: "Roboto", sans-serif; /* Font ailesi güncellendi */
+    font-family: "Roboto", sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -23,7 +23,7 @@
 
   .container {
       background-color: #2d2d2d;
-      padding: 20px; /* Padding artırıldı */
+      padding: 20px;
       border-radius: 10px;
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
       text-align: center;
@@ -44,7 +44,7 @@
     display: inline-block;
     font-family: sans-serif;
     font-weight: normal;
-    margin-bottom: 15px; /* Etiketlerden önce boşluk */
+    margin-bottom: 15px;
   }
 
   button:hover:not(:disabled) {
@@ -58,61 +58,53 @@
   }
 
   #label-container {
-    margin-top: 10px; /* Butonun margin-bottom'una göre ayarlandı */
+    margin-top: 10px;
     text-align: left;
     width: 100%;
   }
 
-  /* --- YENİ Progress Bar Stilleri --- */
+  /* --- Div'in Kendisi Progress Bar Stilleri --- */
   .progress-label-container {
     margin-bottom: 12px;
-    padding: 10px;
-    background-color: #3a3a3a;
+    padding: 12px 15px; /* Padding biraz ayarlandı */
+    background-color: #3a3a3a; /* Başlangıç arka plan rengi (boş kısım) */
     border-radius: 5px;
-    font-size: 1.1rem; /* Biraz küçültüldü */
-    color: #f0f0f0;
-    display: flex; /* Flexbox ile hizalama */
-    justify-content: space-between;
+    font-size: 1.1rem;
+    color: #f0f0f0; /* Metin rengi */
+    display: flex;
+    justify-content: space-between; /* İçeriği (isim ve %) iki uca yasla */
     align-items: center;
     font-weight: normal;
+    overflow: hidden; /* Gradyan taşmasın (genelde gerekmez ama garanti olsun) */
+    /* Gradyan değişimini yumuşatmak için transition */
+    transition: background 0.2s ease-out;
   }
 
   .label-name {
       font-weight: normal;
-      margin-right: 10px; /* Boşluk ayarlandı */
-      flex-basis: 100px; /* Etiket adı için sabit bir genişlik */
-      flex-shrink: 0; /* Küçülmesin */
-      overflow: hidden; /* Taşarsa gizle */
-      text-overflow: ellipsis; /* Taşarsa ... koy */
-      white-space: nowrap; /* Tek satırda kalsın */
-  }
-
-  .progress-bar-wrapper {
-      flex-grow: 1; /* Kalan alanı kaplasın */
-      height: 20px; /* Çubuk yüksekliği */
-      background-color: #555; /* Boş çubuk rengi */
-      border-radius: 5px;
-      overflow: hidden; /* Dolgu dışarı taşmasın */
-      margin: 0 10px; /* Sağdan soldan boşluk */
-  }
-
-  .progress-bar-fill {
-      height: 100%;
-      width: 0%; /* Başlangıçta boş */
-      background-color: #007bff; /* Dolu çubuk rengi */
-      border-radius: 5px; /* Sadece sol tarafı yuvarlatmak için */
-      transition: width 0.2s ease-out; /* Genişlik değişimine animasyon */
-      text-align: right; /* İçine yazı yazılırsa (kullanılmıyor şu an) */
-      color: white; /* İçine yazı yazılırsa (kullanılmıyor şu an) */
+      margin-right: 15px; /* Yüzdeden biraz boşluk */
+      flex-shrink: 1; /* Gerekirse küçülsün */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      /* Metnin okunabilirliği için belki hafif gölge eklenebilir */
+      /* text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); */
+       z-index: 1; /* Metnin gradyanın üzerinde kalmasını garanti edebilir */
+       position: relative; /* z-index için */
   }
 
   .label-percentage {
       font-family: monospace;
-      min-width: 45px; /* Yüzde alanı için minimum genişlik */
+      min-width: 45px;
       text-align: right;
       font-weight: normal;
-      flex-shrink: 0; /* Küçülmesin */
+      flex-shrink: 0; /* Yüzde alanı küçülmesin */
+      /* text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); */
+      z-index: 1; /* Metnin gradyanın üzerinde kalmasını garanti edebilir */
+      position: relative; /* z-index için */
   }
+
+  /* Eski progress bar stilleri kaldırıldı (.progress-bar-wrapper, .progress-bar-fill) */
   /* --- Progress Bar Stilleri Bitti --- */
 
 
@@ -156,12 +148,12 @@
     const metadataURL = "https://raw.githubusercontent.com/umtksa/class/refs/heads/main/metadata.json";
 
     const NOTHING_LABEL = "Background Noise";
-    // HIGHLIGHT_THRESHOLD artık kullanılmıyor
-    // const HIGHLIGHT_THRESHOLD = 80;
+    const FILL_COLOR = '#bbbbbb'; // Açık Gri Dolgu Rengi (biraz daha açık)
+    const EMPTY_COLOR = '#3a3a3a'; // Boş Kısım Rengi (CSS ile aynı)
 
     let recognizer;
     let classLabels;
-    let visibleLabels = []; // { name, originalIndex, div, fillBar, percentageSpan }
+    let visibleLabels = []; // { name, originalIndex, div, percentageSpan }
     let isListening = false;
 
     const startButton = document.getElementById("start-button");
@@ -221,35 +213,30 @@
         try {
              await createModel();
 
-             // *** ETİKETLERİ VE PROGRESS BAR YAPISINI OLUŞTUR ***
+             // *** ETİKETLERİ VE SADELEŞTİRİLMİŞ YAPISINI OLUŞTUR ***
              for (let i = 0; i < classLabels.length; i++) {
                 const label = classLabels[i];
                 if (label !== NOTHING_LABEL) {
                     const labelDiv = document.createElement("div");
-                    // Yeni class eklendi
-                    labelDiv.classList.add('progress-label-container');
+                    labelDiv.classList.add('progress-label-container'); // Ana div'e class
 
-                    // Progress bar yapısını içeren HTML
+                    // Sadece isim ve yüzde span'ları
                     labelDiv.innerHTML = `
                         <span class="label-name">${label}</span>
-                        <div class="progress-bar-wrapper">
-                            <div class="progress-bar-fill"></div>
-                        </div>
                         <span class="label-percentage">0%</span>
                     `;
                     labelContainer.appendChild(labelDiv);
 
-                    // Gerekli elementlere referansları sakla
+                    // Ana div ve yüzde span'ına referansları sakla
                     visibleLabels.push({
                         name: label,
                         originalIndex: i,
-                        div: labelDiv, // Ana div
-                        fillBar: labelDiv.querySelector('.progress-bar-fill'), // Dolgu çubuğu
-                        percentageSpan: labelDiv.querySelector('.label-percentage') // Yüzde metni
+                        div: labelDiv, // Ana div (arka planı değişecek)
+                        percentageSpan: labelDiv.querySelector('.label-percentage')
                     });
                 }
              }
-             console.log("Visible labels with progress bars created:", visibleLabels.map(l => l.name));
+             console.log("Visible labels (div as progress bar) created:", visibleLabels.map(l => l.name));
              // *********************************************************
 
              updateLoadingMessage("");
@@ -258,18 +245,17 @@
              recognizer.listen(result => {
                  const scores = result.scores;
 
-                 // Her görünür etiket için ilerleme çubuğunu ve yüzdeyi güncelle
+                 // Her görünür etiket için div'in arka planını ve yüzdeyi güncelle
                  visibleLabels.forEach(item => {
                       const score = scores[item.originalIndex];
                       const percentage = Math.round(score * 100);
 
-                      // İlerleme çubuğunun genişliğini güncelle
-                      item.fillBar.style.width = `${percentage}%`;
+                      // Div'in arka planını linear-gradient ile güncelle
+                      // Gradyan: sağa doğru, Dolu Renk yüzdeye kadar, sonra Boş Renk
+                      item.div.style.background = `linear-gradient(to right, ${FILL_COLOR} ${percentage}%, ${EMPTY_COLOR} ${percentage}%)`;
 
                       // Yüzde metnini güncelle
                       item.percentageSpan.innerText = `${percentage}%`;
-
-                      // Vurgulama (highlight) kodu kaldırıldı
                  });
 
              }, {
@@ -300,12 +286,13 @@
             startButton.disabled = false;
             updateLoadingMessage("Dinleme durduruldu.");
 
-             // Progress barları ve yüzdeleri sıfırla
+             // Div'lerin arka planını ve yüzdeleri sıfırla
              visibleLabels.forEach(item => {
-                 item.fillBar.style.width = '0%'; // Genişliği sıfırla
+                 // Arka planı varsayılan renge döndür (inline stili kaldırarak veya varsayılanı ayarlayarak)
+                 item.div.style.background = ''; // Inline stili kaldırmak genellikle daha temizdir
+                 // Alternatif: item.div.style.background = EMPTY_COLOR;
                  item.percentageSpan.innerText = '0%'; // Metni sıfırla
              });
-             // Eğer visibleLabels boşsa (init hiç çalışmadıysa), labelContainer'ı tamamen temizle
              if (visibleLabels.length === 0) {
                  labelContainer.innerHTML = '';
              }
@@ -314,11 +301,11 @@
 
     async function preloadModel() {
         try {
-            updateLoadingMessage("");
+            updateLoadingMessage("Yükleniyor..."); // Mesaj güncellendi
             startButton.disabled = true;
-            startButton.classList.remove('hidden-button');
+            startButton.classList.remove('hidden-button'); // İlk başta görünsün
             await createModel();
-            updateLoadingMessage("");
+            updateLoadingMessage(""); // Yükleme bitince mesajı kaldır
             startButton.disabled = false;
             startButton.innerText = "lesgo";
             console.log("Model ön yüklendi. Başlamak için 'lesgo' butonuna basın.");
@@ -326,7 +313,7 @@
             console.error("Model ön yüklenirken bir hata oluştu:", error);
             updateLoadingMessage("Hata: Model ön yüklenemedi.", true);
             startButton.disabled = true;
-            startButton.classList.remove('hidden-button');
+            startButton.classList.remove('hidden-button'); // Hata durumunda da görünsün
             startButton.innerText = "Hata";
         }
     }
