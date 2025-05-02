@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Duff - Smoother Progress Bar</title>
+<title>Duff</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -117,7 +117,7 @@
 
   .label-percentage {
       font-family: monospace;
-      min-width: 45px;
+      min-width: 45px; /* Min width to prevent jumping */
       text-align: right;
       font-weight: normal;
       flex-shrink: 0;
@@ -276,6 +276,7 @@
 
                     const percentageSpan = document.createElement("span");
                     percentageSpan.classList.add('label-percentage');
+                    // DEĞİŞİKLİK BURADA: Başlangıç değeri sadece rakam
                     percentageSpan.textContent = '0';
 
                     // Assemble the elements
@@ -311,11 +312,13 @@
 
                       // --- UPDATE WIDTH FOR SMOOTH ANIMATION ---
                       // Set the width of the fill div based on the percentage
-                      item.fillDiv.style.width = `${percentage}`;
+                      item.fillDiv.style.width = `${percentage}%`;
                       // --- --- --- --- --- --- --- --- --- ---
 
-                      // Update the percentage text
+                      // --- DEĞİŞİKLİK BURADA: Yüzde işareti kaldırıldı ---
+                      // Update the percentage text (sadece rakam)
                       item.percentageSpan.innerText = `${percentage}`;
+                      // --- --- --- --- --- --- --- --- --- --- ---
                  });
 
              }, {
@@ -353,7 +356,8 @@
 
                  // Reset the progress bars visually
                  visibleLabels.forEach(item => {
-                     item.fillDiv.style.width = '0'; // Reset fill width
+                     item.fillDiv.style.width = '0%'; // Reset fill width
+                     // DEĞİŞİKLİK BURADA: Reset değeri sadece rakam
                      item.percentageSpan.innerText = '0'; // Reset percentage text
                  });
 
