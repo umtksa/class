@@ -1,133 +1,150 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>duff</title> <meta charset="UTF-8">
+<title>Duff - Smoother Progress Bar</title>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 <style>
   body {
-    font-family: "Roboto"; /* Seçilen font uygulandı */
+    font-family: "Roboto", sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #1e1e1e; /* Koyu arka plan */
-    color: #f0f0f0; /* Açık metin rengi */
-    font-weight: 400; /* Varsayılan font ağırlığı (bold olmaması için) */
-    line-height: 1.6; /* Satır aralığı eklendi */
+    background-color: #1e1e1e; /* Dark background */
+    color: #f0f0f0; /* Light text */
+    font-weight: 400;
+    line-height: 1.6;
   }
 
   .container {
-      background-color: #2d2d2d; /* Konteyner için biraz daha açık koyu renk */
-      padding: 15px; /* Padding artırıldı */
-      border-radius: 10px; /* Kenar yumuşatma */
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); /* Koyu gölge artırıldı */
-      text-align: center; /* İçeriği (varsayılan olarak inline/inline-block) ortalar */
-      width: 95%; /* Genişlik artırıldı */
-      max-width: 600px; /* Maksimum genişlik */
-      box-sizing: border-box; /* Paddingin genişliği etkilememesi için */
-      padding-bottom: 5px;
+      background-color: #2d2d2d; /* Slightly lighter container background */
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+      text-align: center;
+      width: 95%;
+      max-width: 600px;
+      box-sizing: border-box;
   }
+
   button {
-    padding: 15px 30px; /* Buton boyutu artırıldı */
-    font-size: 1.2rem; /* Buton font boyutu */
+    padding: 15px 30px;
+    font-size: 1.2rem;
     cursor: pointer;
     border: none;
-    border-radius: 5px; /* Kenar yumuşatma */
-    background-color: #007bff;
+    border-radius: 5px;
+    background-color: #007bff; /* Blue button */
     color: white;
     transition: background-color 0.3s ease;
-    display: inline-block; /* BUTON HEP INLINE-BLOCK KALACAK ve text-align: center ile ortalanacak */
-    font-family: sans-serif; /* Buton fontu sistem fontu kalsın, daha okunur olabilir */
-    font-weight: normal; /* Butonun bold olmamasını sağla */
+    display: inline-block;
+    font-family: sans-serif;
+    font-weight: normal;
+    margin-bottom: 15px;
   }
 
   button:hover:not(:disabled) {
-    background-color: #0056b3;
+    background-color: #0056b3; /* Darker blue on hover */
   }
 
   button:disabled {
-      background-color: #555555; /* Koyu modda disabled buton rengi */
+      background-color: #555555; /* Gray disabled button */
       cursor: not-allowed;
       color: #bbbbbb;
   }
 
   #label-container {
-    margin-top: 5px; /* Butonun margin-bottom'una göre ayarlandı */
-    text-align: left; /* Etiket içeriği sola yaslı */
+    margin-top: 10px;
+    text-align: left;
     width: 100%;
   }
 
-  #label-container div {
-    margin-bottom: 12px; /* Boşluk artırıldı */
-    padding: 10px; /* Padding artırıldı */
-    background-color: #3a3a3a; /* Etiket arka planı */
+  /* --- Progress Bar Wrapper --- */
+  .progress-wrapper {
+    margin-bottom: 12px;
+    background-color: #3a3a3a; /* Background of the empty part */
     border-radius: 5px;
+    overflow: hidden; /* Important to contain the inner fill */
+    position: relative; /* Needed for absolute positioning of text */
+    height: 45px; /* Adjust height as needed */
+    display: flex; /* Use flexbox for alignment */
+    align-items: center; /* Center items vertically */
+  }
+
+  /* --- Progress Bar Fill --- */
+  .progress-fill {
+    height: 100%;
+    background-color: #6d6d6d; /* Fill color (e.g., blue) */
+    border-radius: 5px 0 0 5px; /* Round left corners */
+    width: 0%; /* Start with 0 width */
+    /* --- SMOOTH TRANSITION --- */
+    transition: width 0.2s ease-out; /* Animate width changes smoothly */
+    /* --- --- --- --- --- --- */
+    position: absolute; /* Position behind the text */
+    top: 0;
+    left: 0;
+    z-index: 1; /* Behind the text content */
+  }
+
+  /* --- Progress Bar Text Content --- */
+  .progress-content {
+    padding: 0 15px; /* Padding inside the wrapper */
     font-size: 1.1rem;
-    color: #f0f0f0; /* Etiket metin rengi */
+    color: #f0f0f0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: background-color 0.3s ease; /* Vurgu geçişi */
-    font-weight: normal; /* Etiket divlerinin içindeki yazıların bold olmamasını sağla */
+    font-weight: normal;
+    width: 100%; /* Take full width */
+    position: relative; /* Position above the fill */
+    z-index: 2; /* Above the fill */
+    box-sizing: border-box; /* Include padding in width calculation */
   }
 
-   #label-container div span:first-child {
-       font-weight: normal; /* Etiketin bold olmamasını sağla */
-       margin-right: 20px; /* Boşluk artırıldı */
-       flex-grow: 1; /* Etiket adının alanı kaplamasını sağla */
-   }
+  .label-name {
+      font-weight: normal;
+      margin-right: 15px;
+      flex-shrink: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+  }
 
-   #label-container div span:last-child {
-       font-family: monospace; /* Yüzde için sabit genişlikli font */
-       min-width: 50px; /* Yüzde alanı için minimum genişlik artırıldı */
-       text-align: right;
-       font-weight: normal; /* Yüzdenin bold olmamasını sağla */
-       flex-shrink: 0; /* Yüzdenin küçülmemesini sağla */
-   }
-
-
-   #label-container div.highest-confidence {
-       background-color: #606060; /* Yeşil vurgu rengi (Materyal Design yeşil 500) */
-       color: #1e1e1e; /* Vurgulu metin için koyu renk (kontrastı artırmak için) */
-       font-weight: normal; /* Vurgulu etiket divlerinin bold olmamasını sağla */
-   }
-
-    /* Vurgulu etiket içindeki spanlerin de normal font ağırlığında olması için */
-    #label-container div.highest-confidence span {
-       font-weight: normal !important; /* !important ekledim ki diğer span kurallarını ezsin */
-    }
+  .label-percentage {
+      font-family: monospace;
+      min-width: 45px;
+      text-align: right;
+      font-weight: normal;
+      flex-shrink: 0;
+  }
+  /* --- Progress Bar Styles End --- */
 
 
    #loading-message {
        font-style: italic;
-       color: #aaaaaa; /* Yükleme mesajı rengi */
-       margin-bottom: 15px; /* Mesaj görünürken altında boşluk olsun */
-       min-height: 1.3rem; /* Mesaj görünürken minimum yüksekliği olsun */
+       color: #707070; /* Lighter gray for loading message */
+       margin-bottom: 15px;
+       min-height: 1.3rem; /* Reserve space */
        font-size: 1rem;
-       /* Mesaj gizliyken bu özellikler devre dışı kalacak */
-       font-weight: normal; /* Mesajın bold olmamasını sağla */
+       font-weight: normal;
    }
 
-   /* Mesaj alanı boş olduğunda veya gizlenmek istendiğinde kullanılacak sınıf */
    .hidden-message {
-       display: none; /* Elementi tamamen gizler, yer kaplamaz */
+       display: none;
    }
 
-   /* Hata mesajları için ekstra stil */
    #loading-message.error {
-       color: #ff6b6b; /* Kırmızımsı hata rengi */
+       color: #ff6b6b; /* Red for errors */
    }
 
-   /* BUTONU GİZLEMEK İçin SINIF */
    .hidden-button {
-       display: none !important; /* !important ekledim ki JS'deki inline stilleri ezsin */
+       display: none !important; /* Ensure button is hidden */
    }
-
 
 </style>
 </head>
@@ -135,252 +152,249 @@
 
 <div class="container">
  <div id="loading-message"></div>
-    <button type="button" onclick="init()" disabled id="start-button" class="hidden-button">lesgo</button> <div id="label-container"></div>
+    <button type="button" onclick="init()" disabled id="start-button" class="hidden-button">lesgo</button>
+    <div id="label-container"></div>
 </div>
-
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
 
 <script type="text/javascript">
-    // more documentation available at
-    // https://github.com/tensorflow/tfjs-models/tree/master/speech-commands
+    // URLs for the model and metadata
+    const checkpointURL = "https://raw.githubusercontent.com/umtksa/class/refs/heads/main/model.json";
+    const metadataURL = "https://raw.githubusercontent.com/umtksa/class/refs/heads/main/metadata.json";
 
-    // the link to your model provided by Teachable Machine export panel
-    const checkpointURL = "https://raw.githubusercontent.com/umtksa/class/refs/heads/main/model.json"; // model topology
-    const metadataURL = "https://raw.githubusercontent.com/umtksa/class/refs/heads/main/metadata.json"; // model metadata
+    const NOTHING_LABEL = "Background Noise"; // Label to ignore
 
-    const NOTHING_LABEL = "Background Noise"; // 'nothing' etiketini belirledik
-    const HIGHLIGHT_THRESHOLD = 80; // Vurgu için yüzde eşiği (95% ve üzeri)
-
-    let recognizer;
-    let classLabels; // Modeldeki tüm etiketler (nothing dahil)
-    let visibleLabels = []; // Gösterilecek etiketler ve onların orijinal indeksleri
-    let isListening = false; // Dinleme durumunu takip etmek için
-
+    // DOM Elements
     const startButton = document.getElementById("start-button");
     const labelContainer = document.getElementById("label-container");
     const loadingMessage = document.getElementById("loading-message");
 
-    // Modelin yüklenip yüklenmediğini takip etmek için
+    // State variables
+    let recognizer;
+    let classLabels;
+    let visibleLabels = []; // Stores { name, originalIndex, fillDiv, percentageSpan }
+    let isListening = false;
     let modelLoaded = false;
 
-     // Mesaj gösterme ve gizleme fonksiyonu
+    /**
+     * Updates the loading message displayed to the user.
+     * @param {string} message - The message to display.
+     * @param {boolean} [isError=false] - Whether the message indicates an error.
+     */
     function updateLoadingMessage(message, isError = false) {
         loadingMessage.innerText = message;
         if (message) {
-            loadingMessage.classList.remove('hidden-message'); // Mesaj varsa göster
-             if (isError) {
-                 loadingMessage.classList.add('error'); // Hata sınıfını ekle
-             } else {
-                 loadingMessage.classList.remove('error'); // Hata sınıfını kaldır
-             }
+            loadingMessage.classList.remove('hidden-message');
+             if (isError) loadingMessage.classList.add('error');
+             else loadingMessage.classList.remove('error');
         } else {
-            loadingMessage.classList.add('hidden-message'); // Mesaj boşsa gizle
-             loadingMessage.classList.remove('error'); // Mesaj yoksa hata sınıfını kaldır
+            loadingMessage.classList.add('hidden-message');
+            loadingMessage.classList.remove('error');
         }
     }
 
-
+    /**
+     * Creates or retrieves the speech commands recognizer instance
+     * and ensures the model is loaded.
+     * @returns {Promise<speechCommands.SpeechCommandRecognizer>} The loaded recognizer.
+     */
     async function createModel() {
-        // Eğer recognizer zaten oluşturulduysa VE model başarılı yüklendiyse, tekrar yüklemeye gerek yok
         if (recognizer && modelLoaded) {
              console.log("Model already created and loaded.");
              return recognizer;
          }
-         // Eğer recognizer varsa ama modelLoaded false ise, önceki yükleme başarısız olmuş olabilir, yeniden dene
 
-
-        // *** CACHE BUSTING ***
-        // URL'lerin sonuna her çağrıda değişen bir query string ekle
-        const timestamp = Date.now(); // Benzersiz bir değer (şimdiki zaman)
+        // Add timestamp to prevent caching issues
+        const timestamp = Date.now();
         const checkpointURL_busted = `${checkpointURL}?v=${timestamp}`;
         const metadataURL_busted = `${metadataURL}?v=${timestamp}`;
-        // *********************
 
         console.log("Attempting to create model with busted URLs:", checkpointURL_busted, metadataURL_busted);
 
-
+        // Create the recognizer
         recognizer = speechCommands.create(
-            "BROWSER_FFT", // fourier transform type, not useful to change
-            undefined, // speech commands vocabulary feature, not useful for your models
-            checkpointURL_busted, // Artık cache busting yapılmış URL'i kullan
-            metadataURL_busted  // Artık cache busting yapılmış URL'i kullan
+            "BROWSER_FFT", // Type of recognizer
+            undefined, // Specific vocabulary (optional)
+            checkpointURL_busted,
+            metadataURL_busted
         );
 
         console.log("Recognizer created, awaiting ensureModelLoaded...");
-        // check that model and metadata are loaded via HTTPS requests.
-        await recognizer.ensureModelLoaded(); // Model ve metadata yüklenene kadar bekle
-
-        modelLoaded = true; // Model başarılı yüklendi olarak işaretle
+        // Load the model and metadata
+        await recognizer.ensureModelLoaded();
+        modelLoaded = true;
         console.log("Model and metadata ensured loaded successfully.");
 
-        // *** ÖNEMLİ: Model ve metadata yüklendikten sonra etiketleri al ***
-        // BU KISIM ARTIK SADECE ETIKETLERI ALACAK. DIV'LERIN OLUŞTURULMASI INIT()'E TAŞINDI.
+        // Get the class labels from the loaded model
         classLabels = recognizer.wordLabels();
         console.log("All class labels from model:", classLabels);
-
-
-        // !!! BURADAN DIV OLUŞTURMA VE VISIBLELABELS POPÜLASYONU KALDIRILDI !!!
-        // BU İŞLEM ARTIK init() İÇİNDE YAPILACAK.
-
-
         return recognizer;
     }
 
+    /**
+     * Initializes the speech recognition process.
+     * Creates the UI elements for labels and starts listening for commands.
+     */
     async function init() {
         if (isListening) {
-            console.log("Zaten dinleniyor.");
-            return; // Zaten dinliyorsa tekrar başlatma
+            console.log("Already listening.");
+            return;
         }
 
-        updateLoadingMessage("Mikrofon izni bekleniyor..."); // Mesajı göster
-        // Butonu gizlemek için sınıf kullan
-        startButton.classList.add('hidden-button');
-
-        // *** ÖNCEKİ ETİKETLERİ TEMİZLE VE LİSTEYİ BOŞALT ***
-        labelContainer.innerHTML = ''; // Etiket alanını temizle
-        visibleLabels = []; // Gösterilecek etiketler listesini boşalt
-        // ***************************************************
+        updateLoadingMessage("Requesting microphone access...");
+        startButton.classList.add('hidden-button'); // Hide button while initializing
+        labelContainer.innerHTML = ''; // Clear previous labels
+        visibleLabels = []; // Reset visible labels array
 
         try {
-             // createModel artık içinde yüklü olup olmadığını kontrol ediyor
-             await createModel(); // Model yüklenir veya önceden yüklüyse döner. classLabels burada zaten alınmış olur.
+             // Ensure the model is created and loaded
+             await createModel();
 
-             // *** MODEL YÜKLENDİKTEN SONRA GÖSTERİLECEK ETİKETLERİ (NOTHING HARİÇ) BELİRLE VE DIVLERİNİ OLUŞTUR ***
-             // Bu kısım artık init() içinde çalışacak
+             // *** CREATE UI ELEMENTS FOR EACH VISIBLE LABEL ***
              for (let i = 0; i < classLabels.length; i++) {
                 const label = classLabels[i];
-                if (label !== NOTHING_LABEL) { // Eğer etiket 'nothing' değilse
-                    const labelDiv = document.createElement("div");
-                    // Başlangıç metni: Etiket ve boş yüzde alanı
-                    labelDiv.innerHTML = `<span>${label}</span><span></span>`;
-                    labelContainer.appendChild(labelDiv);
-                    // Gösterilecek etiketler listesine ekle (orijinal indeksi ve div elementi ile birlikte)
-                    visibleLabels.push({ name: label, originalIndex: i, div: labelDiv });
+                // Skip the background noise label
+                if (label !== NOTHING_LABEL) {
+                    // Create the main wrapper div for the progress bar
+                    const wrapperDiv = document.createElement("div");
+                    wrapperDiv.classList.add('progress-wrapper');
+
+                    // Create the inner div that will be the visual fill
+                    const fillDiv = document.createElement("div");
+                    fillDiv.classList.add('progress-fill');
+
+                    // Create the div to hold the text content (label name and percentage)
+                    const contentDiv = document.createElement("div");
+                    contentDiv.classList.add('progress-content');
+
+                    // Create spans for the label name and percentage
+                    const nameSpan = document.createElement("span");
+                    nameSpan.classList.add('label-name');
+                    nameSpan.textContent = label;
+
+                    const percentageSpan = document.createElement("span");
+                    percentageSpan.classList.add('label-percentage');
+                    percentageSpan.textContent = '0';
+
+                    // Assemble the elements
+                    contentDiv.appendChild(nameSpan);
+                    contentDiv.appendChild(percentageSpan);
+                    wrapperDiv.appendChild(fillDiv); // Fill goes first (behind content)
+                    wrapperDiv.appendChild(contentDiv); // Content goes on top
+                    labelContainer.appendChild(wrapperDiv);
+
+                    // Store references to the fill div and percentage span for updates
+                    visibleLabels.push({
+                        name: label,
+                        originalIndex: i,
+                        fillDiv: fillDiv, // Reference to the fill div
+                        percentageSpan: percentageSpan // Reference to the percentage text
+                    });
                 }
              }
-             console.log("Visible labels created:", visibleLabels.map(l => l.name));
-             // ************************************************************************************************
+             console.log("Visible labels UI created:", visibleLabels.map(l => l.name));
+             // *********************************************************
 
-             // Model başarılı yüklendiğinde veya yüklüyse mesajı temizle
-             updateLoadingMessage(""); // Başarılı olursa mesajı boşalt ve gizle
-
+             updateLoadingMessage(""); // Clear loading message
 
              console.log("Starting recognizer listen...");
-             // listen() takes two arguments:
-             // 1. A callback function that is invoked anytime a word is recognized.
-             // 2. A configuration object with adjustable fields
+             // Start listening for speech commands
              recognizer.listen(result => {
-                 const scores = result.scores; // probability of prediction for each class
+                 const scores = result.scores; // Get the probability scores for each label
 
-                 // Tüm görünür etiketlerin vurgusunu kaldır
+                 // Update the UI for each visible label based on the scores
                  visibleLabels.forEach(item => {
-                     item.div.classList.remove('highest-confidence');
-                 });
-
-                 // Her görünür etiket için olasılığı güncelle ve vurguyu kontrol et
-                 // NOT: Bu kod, %95 üzeri olan TÜM etiketleri vurgular.
-                 // SADECE EN YÜKSEK OLANI vurgulamak isterseniz burayı değiştirmeniz gerekir.
-                 // Şu anki hali, 95% eşiğini geçen herhangi bir kelimeyi vurgular.
-                 visibleLabels.forEach(item => {
-                      const score = scores[item.originalIndex]; // Orijinal indeksi kullanarak skoru al
+                      const score = scores[item.originalIndex];
                       const percentage = Math.round(score * 100);
 
-                      // Etiket içeriğini güncelle
-                      item.div.innerHTML = `<span>${item.name}</span><span>${percentage}</span>`; // % işareti eklendi
+                      // --- UPDATE WIDTH FOR SMOOTH ANIMATION ---
+                      // Set the width of the fill div based on the percentage
+                      item.fillDiv.style.width = `${percentage}`;
+                      // --- --- --- --- --- --- --- --- --- ---
 
-                      // Vurgu eşiğini kontrol et (%95 üzeri)
-                      if (percentage >= HIGHLIGHT_THRESHOLD) {
-                          item.div.classList.add('highest-confidence'); // %95 üzeri ise vurgula
-                      }
+                      // Update the percentage text
+                      item.percentageSpan.innerText = `${percentage}`;
                  });
 
-
              }, {
-                 includeSpectrogram: true, // in case listen should return result.spectrogram
-                 // probabilityThreshold: 0.75, // Bu eşik modelin ne zaman bir "kelime" algıladığını belirler.
-                 // invokeCallbackOnNoiseAndUnknown: true, // Noise veya unknown algılandığında callback'i çalıştırmak için (Şu anki callback'te kullanmıyoruz)
-                 // Overlap factor kelimeler arası geçişi ne kadar dikkate alacağını belirler
-                 overlapFactor: 0.50 // probably want between 0.5 and 0.75. More info in README
-                 // NOT: Eğer sadece belirlediğiniz kelimeleri algılamak istiyorsanız
-                 // invokeCallbackOnNoiseAndUnknown: false yapıp probabilityThreshold'u ayarlayabilirsiniz.
-                 // Şu anki ayar, her saniye bir sonuç verir.
+                 includeSpectrogram: true, // Required for BROWSER_FFT
+                 overlapFactor: 0.50, // How much overlap between consecutive analysis windows
+                 probabilityThreshold: 0.75 // Optional: minimum probability to trigger
              });
 
-             isListening = true; // Dinleme başladı olarak işaretle
-             console.log("Dinleme Başladı.");
-
+             isListening = true;
+             console.log("Listening started.");
 
          } catch (error) {
-             console.error("Model veya mikrofon başlatılırken bir hata oluştu:", error);
-             updateLoadingMessage("Hata: Mikrofon başlatılamadı veya model yüklenemedi. Lütfen mikrofon iznini kontrol edin.", true); // Hata mesajı güncellendi
-             // Hata durumunda butonu göstermek için sınıf kullan
-             startButton.classList.remove('hidden-button');
-             startButton.disabled = true; // Hata durumunda butonu devre dışı bırak
-             isListening = false; // Dinleme durumu hatalı olarak işaretle
-
-              // Hata olursa etiket alanını temizle
-              labelContainer.innerHTML = '';
-              visibleLabels = [];
+             console.error("Error during initialization or listening:", error);
+             updateLoadingMessage("Error: Could not start microphone or load model. Check permissions.", true);
+             startButton.classList.remove('hidden-button'); // Show button again on error
+             startButton.disabled = true; // Keep it disabled
+             isListening = false;
+             labelContainer.innerHTML = ''; // Clear labels on error
+             visibleLabels = [];
          }
     }
 
-    // Modeli durdurmak için yeni fonksiyon (şu an kullanılmıyor ama durdurma butonu eklerseniz lazım olur)
+    /**
+     * Stops the speech recognition process.
+     */
     async function stopListening() {
         if (recognizer && isListening) {
-            await recognizer.stopListening();
-            isListening = false;
-            console.log("Dinleme durduruldu.");
-            // Durdurunca butonu göstermek için sınıf kullan
-            startButton.classList.remove('hidden-button');
-            startButton.disabled = false; // Durdurunca butonu tekrar aktif et
-            updateLoadingMessage("Dinleme durduruldu."); // Durdurulduğunda mesaj göster
+            try {
+                await recognizer.stopListening();
+                isListening = false;
+                console.log("Listening stopped.");
+                startButton.classList.remove('hidden-button'); // Show start button
+                startButton.disabled = false; // Enable start button
+                updateLoadingMessage("Listening stopped.");
 
-             // Etiketleri eski haline getirebilir (boş yüzde) ve vurguyu kaldırabilirsin
-             visibleLabels.forEach(item => {
-                 item.div.innerHTML = `<span>${item.name}</span><span></span>`; // Yüzdeyi boşalt
-                 item.div.classList.remove('highest-confidence'); // Vurguyu kaldır
-             });
-             // Eğer visibleLabels boşsa (init hiç çalışmadıysa), labelContainer'ı tamamen temizle
-             if (visibleLabels.length === 0) {
-                 labelContainer.innerHTML = '';
-             }
+                 // Reset the progress bars visually
+                 visibleLabels.forEach(item => {
+                     item.fillDiv.style.width = '0'; // Reset fill width
+                     item.percentageSpan.innerText = '0'; // Reset percentage text
+                 });
+
+                 // Optional: Clear labels if you want them removed when stopped
+                 // if (visibleLabels.length === 0) {
+                 //     labelContainer.innerHTML = '';
+                 // }
+            } catch (error) {
+                console.error("Error stopping listening:", error);
+                updateLoadingMessage("Error stopping listener.", true);
+                // Keep UI state as is, maybe disable button if stop failed critically
+            }
+        } else {
+            console.log("Not currently listening or recognizer not initialized.");
         }
     }
 
-
-    // Sayfa yüklendiğinde modeli önceden yüklemeye başla
+    /**
+     * Preloads the model when the page loads so it's ready faster
+     * when the user clicks the start button.
+     */
     async function preloadModel() {
         try {
-            // Başlangıç yükleme mesajını göster ve butonu devre dışı bırak
-            updateLoadingMessage("");
+            updateLoadingMessage("Loading model..."); // Initial loading message
             startButton.disabled = true;
-            // Butonun gizli olmadığından emin ol (ilk yüklemede görünecek)
-            startButton.classList.remove('hidden-button');
-
-
-            await createModel(); // Modeli yükle (Cache busting burada devreye girer)
-            // createModel artık sadece modeli yüklüyor ve classLabels'ı alıyor.
-            // Etiket divleri burada OLUŞTURULMUYOR.
-
-            // Model başarılı yüklendiğinde mesajı temizle
-            updateLoadingMessage(""); // Mesajı boşalt ve gizle
-
-            startButton.disabled = false; // Butonu aktif et
-            startButton.innerText = "lesgo"; // Buton metnini "Başla" yap
-            console.log("Model ön yüklendi. Başlamak için 'Başla' butonuna basın.");
-
+            startButton.classList.remove('hidden-button'); // Show button during preload
+            await createModel(); // Load the model
+            updateLoadingMessage(""); // Clear message on success
+            startButton.disabled = false; // Enable button
+            startButton.innerText = "lesgo"; // Set button text
+            console.log("Model preloaded. Press 'lesgo' to start.");
         } catch (error) {
-            console.error("Model ön yüklenirken bir hata oluştu:", error);
-            updateLoadingMessage("Hata: Model ön yüklenemedi.", true); // Hata mesajını göster
-            startButton.disabled = true; // Hata olursa butonu disabled tut
-            startButton.classList.remove('hidden-button'); // Hata olsa bile buton görünür kalsın
-             startButton.innerText = "Hata"; // Buton metnini "Hata" yapabiliriz
+            console.error("Error during model preloading:", error);
+            updateLoadingMessage("Error: Failed to preload model.", true);
+            startButton.disabled = true;
+            startButton.classList.remove('hidden-button'); // Ensure button is visible
+            startButton.innerText = "Error"; // Indicate error state
         }
     }
 
-    // Sayfa yüklendiğinde ilk yükleme işlemini başlat
+    // Start preloading the model as soon as the script runs
     preloadModel();
 
 </script>
