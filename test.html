@@ -66,31 +66,31 @@
   /* --- Div'in Kendisi Progress Bar Stilleri --- */
   .progress-label-container {
     margin-bottom: 12px;
-    padding: 12px 15px; /* Padding biraz ayarlandı */
+    padding: 12px 15px;
     background-color: #3a3a3a; /* Başlangıç arka plan rengi (boş kısım) */
     border-radius: 5px;
     font-size: 1.1rem;
-    color: #f0f0f0; /* Metin rengi */
+    color: #f0f0f0;
     display: flex;
-    justify-content: space-between; /* İçeriği (isim ve %) iki uca yasla */
+    justify-content: space-between;
     align-items: center;
     font-weight: normal;
-    overflow: hidden; /* Gradyan taşmasın (genelde gerekmez ama garanti olsun) */
+    overflow: hidden;
     /* Gradyan değişimini yumuşatmak için transition */
-    transition: background 0.2s ease-out;
+    /* --- SÜRE ARTIRILDI --- */
+    transition: background 0.6s ease-out; /* 0.2s yerine 0.6s (veya istediğiniz başka bir değer) */
+    /* --- --- --- --- --- */
   }
 
   .label-name {
       font-weight: normal;
-      margin-right: 15px; /* Yüzdeden biraz boşluk */
-      flex-shrink: 1; /* Gerekirse küçülsün */
+      margin-right: 15px;
+      flex-shrink: 1;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      /* Metnin okunabilirliği için belki hafif gölge eklenebilir */
-      /* text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); */
-       z-index: 1; /* Metnin gradyanın üzerinde kalmasını garanti edebilir */
-       position: relative; /* z-index için */
+       z-index: 1;
+       position: relative;
   }
 
   .label-percentage {
@@ -98,10 +98,9 @@
       min-width: 45px;
       text-align: right;
       font-weight: normal;
-      flex-shrink: 0; /* Yüzde alanı küçülmesin */
-      /* text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); */
-      z-index: 1; /* Metnin gradyanın üzerinde kalmasını garanti edebilir */
-      position: relative; /* z-index için */
+      flex-shrink: 0;
+      z-index: 1;
+      position: relative;
   }
 
   /* Eski progress bar stilleri kaldırıldı (.progress-bar-wrapper, .progress-bar-fill) */
